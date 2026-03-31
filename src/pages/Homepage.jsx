@@ -113,8 +113,16 @@ export default function Homepage() {
           </li>
         </ul>
         <div className="nav-right">
-          <button className="nav-login-ghost">View Elections</button>
-          <button className="nav-cta" onClick={() => navigate("/login")}>
+          <button
+            className="nav-login-ghost"
+            onClick={() => navigate("/election/1")}
+          >
+            View Elections
+          </button>
+          <button
+            className="nav-cta"
+            onClick={() => (window.location.href = "/login")}
+          >
             Login to Vote
           </button>
         </div>
@@ -235,7 +243,10 @@ export default function Homepage() {
                 platform.
               </p>
             </div>
-            <button className="elections-browse-btn">
+            <button
+              className="elections-browse-btn"
+              onClick={() => navigate("/election/1")}
+            >
               View all elections <ArrowUpRight size={14} strokeWidth={2.5} />
             </button>
           </div>
@@ -245,6 +256,8 @@ export default function Homepage() {
               <div
                 key={el.id}
                 className={`el-card ${i === 1 ? "el-card--featured" : ""}`}
+                onClick={() => navigate(`/election/${el.id}`)}
+                style={{ cursor: "pointer" }}
               >
                 <div className="el-card-img-wrap">
                   <img src={el.img} alt={el.title} className="el-card-img" />
