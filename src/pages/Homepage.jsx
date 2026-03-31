@@ -8,8 +8,11 @@ import {
   Radio,
   Users,
   CalendarDays,
+  Lock,
+  BarChart2,
 } from "lucide-react";
 import "../styles/Homepage.css";
+import Footer from "../component/Footer";
 
 const partners = [
   "NIC India",
@@ -28,7 +31,6 @@ const activeElections = [
     date: "15 Apr 2025",
     candidates: 7,
     status: "Live",
-    // Students raising hands / voting in a hall
     img: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=700&q=80&fit=crop",
   },
   {
@@ -38,7 +40,6 @@ const activeElections = [
     date: "18 Apr 2025",
     candidates: 5,
     status: "Live",
-    // Real polling booth voters queuing — civic election feel
     img: "https://images.unsplash.com/photo-1587825140708-dfaf72ae4b04?w=700&q=80&fit=crop",
   },
   {
@@ -48,8 +49,30 @@ const activeElections = [
     date: "22 Apr 2025",
     candidates: 4,
     status: "Upcoming",
-    // College campus group of students — community leadership
     img: "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=700&q=80&fit=crop",
+  },
+];
+
+const heroFeatures = [
+  {
+    icon: <Lock size={16} strokeWidth={2} />,
+    title: "Blockchain-Backed",
+    desc: "Every vote is recorded on an immutable ledger — no tampering, no manipulation.",
+  },
+  {
+    icon: <Shield size={16} strokeWidth={2} />,
+    title: "Aadhaar Authentication",
+    desc: "Voters verified using Aadhaar-based identity to prevent duplicate voting.",
+  },
+  {
+    icon: <BarChart2 size={16} strokeWidth={2} />,
+    title: "Live Results",
+    desc: "Transparent, real-time vote tallying visible to all authorized stakeholders.",
+  },
+  {
+    icon: <Users size={16} strokeWidth={2} />,
+    title: "Multi-Election Support",
+    desc: "Supports college councils, panchayats, university bodies and more.",
   },
 ];
 
@@ -98,7 +121,7 @@ export default function Homepage() {
         </div>
       </nav>
 
-      {/* ── HERO — full viewport height, image unchanged ── */}
+      {/* ── HERO ── */}
       <section className="hero">
         <img
           src="https://images.unsplash.com/photo-1607237138185-eedd9c632b0b?w=1800&q=85&fit=crop&crop=top"
@@ -106,6 +129,8 @@ export default function Homepage() {
           className="hero-bg"
           aria-hidden="true"
         />
+
+        {/* Top content */}
         <div className="hero-text">
           <div className="hero-tag">
             <span className="hero-tag-dot" />
@@ -154,6 +179,34 @@ export default function Homepage() {
             Standards-aligned Framework
           </p>
         </div>
+
+        {/* Bottom feature cards row */}
+        <div className="hero-stats">
+          {heroFeatures.map((f) => (
+            <div className="hero-stat-card" key={f.title}>
+              <div className="hero-stat-icon">{f.icon}</div>
+              <div className="hero-feat-title">{f.title}</div>
+              <div className="hero-stat-label">{f.desc}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Scroll hint */}
+        <div className="hero-scroll-hint">
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M12 5v14M5 12l7 7 7-7" />
+          </svg>
+          Scroll to explore
+        </div>
       </section>
 
       {/* ── PARTNERS ── */}
@@ -166,13 +219,11 @@ export default function Homepage() {
         ))}
       </div>
 
-      {/* ── ELECTIONS — section has its own background image ── */}
+      {/* ── ELECTIONS ── */}
       <section className="elections-section">
-        {/* Background image layer */}
         <div className="elections-bg" />
         <div className="elections-bg-overlay" />
 
-        {/* Content sits above bg */}
         <div className="elections-inner">
           <div className="elections-header">
             <div className="elections-header-left">
@@ -226,6 +277,8 @@ export default function Homepage() {
           </div>
         </div>
       </section>
+
+      <Footer />
     </div>
   );
 }
