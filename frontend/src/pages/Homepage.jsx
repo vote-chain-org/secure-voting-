@@ -119,10 +119,7 @@ export default function Homepage() {
           >
             View Elections
           </button>
-          <button
-            className="nav-cta"
-            onClick={() => (window.location.href = "/login")}
-          >
+          <button className="nav-cta" onClick={() => navigate("/login")}>
             Login to Vote
           </button>
         </div>
