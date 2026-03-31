@@ -1,0 +1,608 @@
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700&display=swap");
+
+:root {
+  --bg: #f7f8fc;
+  --surface: #ffffff;
+  --primary: #1a3cff;
+  --primary-light: #e8edff;
+  --accent: #f5c518;
+  --accent-hover: #e0b200;
+  --text: #0d0f1c;
+  --muted: #6b7280;
+  --border: #e5e7eb;
+  --red: #ef4444;
+  --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.08);
+  --shadow-heavy: 0 12px 40px rgba(0, 0, 0, 0.14);
+  --radius: 14px;
+  --radius-sm: 8px;
+  --font-display: "Plus Jakarta Sans", sans-serif;
+  --font-body: "Manrope", sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-body);
+  background: var(--bg);
+  color: var(--text);
+}
+
+/* ─────────────────────────────────────────
+   NAV
+───────────────────────────────────────── */
+.nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 52px;
+  height: 68px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.nav-logo {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.logo-img {
+  width: 28px;
+  height: 28px;
+}
+.logo-text {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.1rem;
+  color: var(--text);
+  letter-spacing: -0.3px;
+}
+
+.nav-links {
+  display: flex;
+  list-style: none;
+  align-items: center;
+  gap: 2px;
+}
+.nav-links li a {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  text-decoration: none;
+  color: var(--muted);
+  font-size: 0.875rem;
+  font-weight: 500;
+  padding: 6px 14px;
+  border-radius: 6px;
+  transition:
+    color 0.18s,
+    background 0.18s;
+}
+.nav-links li a:hover {
+  color: var(--text);
+  background: var(--bg);
+}
+.nav-links li.active a {
+  color: var(--text);
+  font-weight: 700;
+}
+
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.nav-login-ghost {
+  background: transparent;
+  border: 1.5px solid var(--border);
+  color: var(--text);
+  padding: 7px 16px;
+  border-radius: 8px;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    border-color 0.18s,
+    color 0.18s;
+}
+.nav-login-ghost:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.nav-cta {
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 9px 20px;
+  border-radius: 8px;
+  font-family: var(--font-display);
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background 0.18s,
+    transform 0.14s;
+}
+.nav-cta:hover {
+  background: #1230cc;
+  transform: translateY(-1px);
+}
+
+/* ─────────────────────────────────────────
+   HERO — full 100vh so user scrolls to cards
+───────────────────────────────────────── */
+.hero {
+  position: relative;
+  height: 100vh; /* ← full viewport height */
+  min-height: 600px;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+}
+
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 25%;
+  z-index: 0;
+}
+
+.hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    rgba(25, 27, 32, 0.6) 0%,
+    rgba(15, 17, 22, 0.72) 100%
+  );
+  z-index: 1;
+}
+.hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to right,
+    rgba(10, 12, 20, 0.42) 0%,
+    transparent 58%
+  );
+  z-index: 1;
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(22px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.hero-text {
+  position: relative;
+  z-index: 2;
+  max-width: 680px;
+  padding: 0 80px;
+  animation: fadeUp 0.65s ease both;
+}
+
+.hero-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-bottom: 18px;
+}
+.hero-tag-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--accent);
+  flex-shrink: 0;
+}
+
+.hero-heading {
+  font-family: var(--font-display);
+  font-size: clamp(2.8rem, 5vw, 4rem);
+  font-weight: 800;
+  color: #fff;
+  line-height: 1.1;
+  margin-bottom: 22px;
+  letter-spacing: -0.5px;
+}
+.highlight {
+  color: #6b8fff;
+}
+
+.hero-sub {
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 1rem;
+  line-height: 1.75;
+  margin-bottom: 34px;
+  max-width: 520px;
+  font-weight: 400;
+}
+
+.hero-trust {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 14px;
+  color: rgba(255, 255, 255, 0.48);
+  font-size: 0.74rem;
+  letter-spacing: 0.01em;
+}
+
+/* ─────────────────────────────────────────
+   SEARCH BAR
+───────────────────────────────────────── */
+.search-bar {
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.97);
+  border-radius: var(--radius-sm);
+  padding: 5px 5px 5px 16px;
+  max-width: 580px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.28);
+}
+
+.search-field {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  padding: 0 8px;
+}
+.search-field input,
+.search-field select {
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  color: var(--text);
+  width: 100%;
+  cursor: pointer;
+  padding: 7px 0;
+}
+.search-field input::placeholder {
+  color: #9ca3af;
+}
+
+.divider {
+  width: 1px;
+  height: 24px;
+  background: var(--border);
+  flex-shrink: 0;
+}
+
+.search-btn {
+  background: var(--accent);
+  border: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 6px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition:
+    background 0.18s,
+    transform 0.14s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.search-btn:hover {
+  background: var(--accent-hover);
+  transform: scale(1.04);
+}
+
+/* ─────────────────────────────────────────
+   BRAND BAR
+───────────────────────────────────────── */
+.brand-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0 32px;
+  padding: 16px 60px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+.brand-label {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: #b0b8c8;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  margin-right: 4px;
+}
+.brand-item {
+  font-family: var(--font-display);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #c4cad6;
+  transition: color 0.18s;
+  cursor: default;
+  user-select: none;
+}
+.brand-item:hover {
+  color: var(--primary);
+}
+
+/* ─────────────────────────────────────────
+   ELECTIONS SECTION — with background image
+───────────────────────────────────────── */
+.elections-section {
+  position: relative;
+  padding: 0;
+  overflow: hidden;
+}
+
+/* Background image — polling station / civic theme */
+.elections-bg {
+  position: absolute;
+  inset: 0;
+  background-image: url("https://images.unsplash.com/photo-1540910419892-4a36d2c3266c?w=1800&q=85&fit=crop");
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed; /* subtle parallax */
+  z-index: 0;
+}
+
+/* Dark overlay so cards + text stay readable */
+.elections-bg-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(8, 10, 28, 0.88) 0%,
+    rgba(15, 20, 50, 0.82) 100%
+  );
+  z-index: 1;
+}
+
+/* All real content floats above */
+.elections-inner {
+  position: relative;
+  z-index: 2;
+  padding: 72px 60px 88px;
+}
+
+.elections-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 40px;
+}
+.elections-header-left {
+  max-width: 480px;
+}
+
+.elections-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.6rem, 2.8vw, 2.2rem);
+  font-weight: 800;
+  color: #ffffff; /* white on dark bg */
+  margin-bottom: 8px;
+}
+.elections-title-line {
+  width: 40px;
+  height: 3px;
+  background: var(--accent); /* yellow accent line */
+  border-radius: 99px;
+  margin-bottom: 12px;
+}
+.elections-sub {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.6);
+  line-height: 1.65;
+}
+
+.elections-browse-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: 1.5px solid rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(8px);
+  color: #fff;
+  padding: 9px 18px;
+  border-radius: 8px;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.18s,
+    border-color 0.18s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.elections-browse-btn:hover {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.6);
+}
+
+/* ─────────────────────────────────────────
+   ELECTION CARDS
+───────────────────────────────────────── */
+.elections-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr 1fr;
+  gap: 20px;
+  align-items: end;
+}
+
+.el-card {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: var(--radius);
+  overflow: hidden;
+  cursor: pointer;
+  transition:
+    transform 0.26s ease,
+    box-shadow 0.26s ease,
+    background 0.2s;
+}
+.el-card:hover {
+  transform: translateY(-6px);
+  background: rgba(255, 255, 255, 0.16);
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.4);
+}
+
+.el-card--featured {
+  border-color: rgba(107, 143, 255, 0.4);
+  box-shadow: 0 8px 32px rgba(26, 60, 255, 0.25);
+}
+.el-card--featured .el-card-img {
+  height: 260px;
+}
+
+.el-card-img-wrap {
+  position: relative;
+  overflow: hidden;
+}
+.el-card-img {
+  width: 100%;
+  height: 190px;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.35s ease;
+}
+.el-card:hover .el-card-img {
+  transform: scale(1.04);
+}
+
+.el-card-badge {
+  position: absolute;
+  top: 11px;
+  left: 11px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(255, 255, 255, 0.93);
+  backdrop-filter: blur(4px);
+  border-radius: 50px;
+  padding: 4px 10px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--muted);
+}
+.el-card-badge[data-status="Live"] {
+  color: var(--red);
+}
+
+.el-card-body {
+  padding: 15px 17px 18px;
+}
+
+.el-card-title {
+  font-family: var(--font-display);
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 6px;
+  line-height: 1.35;
+}
+.el-card-region {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.el-card-details {
+  display: flex;
+  gap: 14px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  font-size: 0.77rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+.el-card-details span {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ─────────────────────────────────────────
+   RESPONSIVE
+───────────────────────────────────────── */
+@media (max-width: 900px) {
+  .nav {
+    padding: 0 20px;
+  }
+  .nav-links,
+  .nav-login-ghost {
+    display: none;
+  }
+  .hero-text {
+    padding: 48px 24px;
+  }
+  .search-bar {
+    flex-direction: column;
+    border-radius: var(--radius-sm);
+    padding: 10px;
+    gap: 8px;
+    align-items: stretch;
+  }
+  .divider {
+    display: none;
+  }
+  .search-field {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 12px;
+  }
+  .search-btn {
+    width: 100%;
+    border-radius: 6px;
+    height: 42px;
+  }
+  .elections-inner {
+    padding: 48px 20px 60px;
+  }
+  .elections-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  .elections-grid {
+    grid-template-columns: 1fr;
+  }
+  .el-card--featured .el-card-img {
+    height: 210px;
+  }
+  .brand-bar {
+    gap: 16px;
+    padding: 16px 20px;
+  }
+  .elections-bg {
+    background-attachment: scroll;
+  }
+}
