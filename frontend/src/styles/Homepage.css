@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Nunito:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Nunito:wght@400;500;600;700&display=swap");
 
 :root {
   --bg: #f7f8fc;
@@ -231,13 +231,13 @@ body {
 }
 
 .hero-heading {
-  font-family: var(--font-display);
-  font-size: clamp(3.2rem, 5.5vw, 4.8rem);
-  font-weight: 800;
+  font-family: "Bebas Neue", var(--font-display);
+  font-size: clamp(4rem, 7vw, 6.5rem);
+  font-weight: 400;
   color: #fff;
-  line-height: 1.08;
+  line-height: 0.95;
   margin-bottom: 22px;
-  letter-spacing: -1px;
+  letter-spacing: 2px;
 }
 .highlight {
   color: #6b8fff;
