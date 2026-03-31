@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import "../styles/LoginPage.css";
-
+import { useNavigate } from "react-router-dom";
 export default function LoginPage() {
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
