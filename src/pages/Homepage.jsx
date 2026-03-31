@@ -12,6 +12,7 @@ import {
   BarChart2,
 } from "lucide-react";
 import "../styles/Homepage.css";
+import { useNavigate } from "react-router-dom";
 import Footer from "../component/Footer";
 
 const partners = [
@@ -77,6 +78,7 @@ const heroFeatures = [
 ];
 
 export default function Homepage() {
+  const navigate = useNavigate();
   return (
     <div className="homepage">
       {/* ── NAV ── */}
@@ -112,10 +114,7 @@ export default function Homepage() {
         </ul>
         <div className="nav-right">
           <button className="nav-login-ghost">View Elections</button>
-          <button
-            className="nav-cta"
-            onClick={() => (window.location.href = "/login")}
-          >
+          <button className="nav-cta" onClick={() => navigate("/login")}>
             Login to Vote
           </button>
         </div>
