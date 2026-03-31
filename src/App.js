@@ -5,7 +5,7 @@ import LoginPage from "./pages/LoginPage";
 
 export default function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/secure-voting-">
       <Routes>
         <Route path="/" element={<Homepage />} />
         <Route path="/login" element={<LoginPage />} />
