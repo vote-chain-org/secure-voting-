@@ -36,7 +36,7 @@ export default function SignupPage() {
 
     try {
       const res = awaitfetch(
-        "https://secure-voting.onrender.com/api/auth/register",
+        "https://secure-voting.onrender.com/api/auth/signup",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
