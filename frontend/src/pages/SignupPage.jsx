@@ -35,17 +35,20 @@ export default function SignupPage() {
     }
 
     try {
-      const res = await fetch("http://localhost:8080/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          fullName: formData.fullName,
-          email: formData.email,
-          voterId: formData.voterId,
-          phone: formData.phone,
-          password: formData.password,
-        }),
-      });
+      const res = awaitfetch(
+        "https://secure-voting.onrender.com/api/auth/register",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            fullName: formData.fullName,
+            email: formData.email,
+            voterId: formData.voterId,
+            phone: formData.phone,
+            password: formData.password,
+          }),
+        },
+      );
 
       const data = await res.json();
 
@@ -53,11 +56,14 @@ export default function SignupPage() {
 
       // Auto login after register
       localStorage.setItem("token", data.token);
-      localStorage.setItem("user", JSON.stringify({
-        email: data.email,
-        name: data.fullName,
-        role: data.role
-      }));
+      localStorage.setItem(
+        "user",
+        JSON.stringify({
+          email: data.email,
+          name: data.fullName,
+          role: data.role,
+        }),
+      );
 
       navigate("/"); // go to homepage
     } catch (err) {
