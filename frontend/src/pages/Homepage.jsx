@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   MapPin,
   ChevronDown,
@@ -79,16 +79,57 @@ const heroFeatures = [
 
 export default function Homepage() {
   const navigate = useNavigate();
+  const [navVisible, setNavVisible] = useState(true);
+  const [navScrolled, setNavScrolled] = useState(false);
+  const lastScrollY = useRef(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentY = window.scrollY;
+      // Show nav when: at top, or scrolling UP
+      if (currentY < 10) {
+        setNavVisible(true);
+        setNavScrolled(false);
+      } else if (currentY < lastScrollY.current) {
+        // Scrolling UP → show with frosted glass bg
+        setNavVisible(true);
+        setNavScrolled(true);
+      } else if (currentY > lastScrollY.current + 8) {
+        // Scrolling DOWN → hide
+        setNavVisible(false);
+        setNavScrolled(true);
+      }
+      lastScrollY.current = currentY;
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
   return (
     <div className="homepage">
       {/* ── NAV ── */}
-      <nav className="nav">
+      <nav
+        className={`nav ${navScrolled ? "nav--scrolled" : ""} ${navVisible ? "" : "nav--hidden"}`}
+      >
         <div className="nav-logo">
-          <img
-            src="https://img.icons8.com/fluency/32/blockchain-technology.png"
-            alt="VoteChain"
-            className="logo-img"
-          />
+          <div className="nav-logo-icon">
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.2"
+            >
+              <rect x="2" y="7" width="6" height="6" rx="1.5" />
+              <rect x="16" y="7" width="6" height="6" rx="1.5" />
+              <rect x="9" y="2" width="6" height="6" rx="1.5" />
+              <rect x="9" y="16" width="6" height="6" rx="1.5" />
+              <line x1="8" y1="10" x2="9" y2="10" />
+              <line x1="15" y1="10" x2="16" y2="10" />
+              <line x1="12" y1="8" x2="12" y2="9" />
+              <line x1="12" y1="15" x2="12" y2="16" />
+            </svg>
+          </div>
           <span className="logo-text">VoteChain</span>
         </div>
         <ul className="nav-links">
@@ -128,7 +169,7 @@ export default function Homepage() {
       {/* ── HERO ── */}
       <section className="hero">
         <img
-          src="https://images.unsplash.com/photo-1607237138185-eedd9c632b0b?w=1800&q=85&fit=crop&crop=top"
+          src="https://images.unsplash.com/photo-1523580846011-d3a5bc25702b?w=1600&q=85"
           alt=""
           className="hero-bg"
           aria-hidden="true"
