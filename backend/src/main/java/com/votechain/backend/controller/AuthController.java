@@ -24,6 +24,14 @@ public class AuthController {
     public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest request) {
         return ResponseEntity.ok(authService.login(request));
     }
+    @GetMapping("/test")
+    public String test() {
+        return "API working";
+    }
+    @GetMapping("/api/user/profile")
+    public String profile() {
+        return "Protected data";
+    }
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<java.util.Map<String, String>> handleError(RuntimeException ex) {
         return ResponseEntity
