@@ -151,11 +151,7 @@ export default function LoginPage() {
 
           <p className="register-row">
             Are you new?{" "}
-            <a
-              href="#"
-              className="register-link"
-              onClick={() => navigate("/signup")}
-            >
+            <a className="register-link" onClick={() => navigate("/signup")}>
               Create an Account
             </a>
           </p>

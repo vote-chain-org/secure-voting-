@@ -231,12 +231,8 @@ export default function SignupPage() {
 
           <p className="login-row">
             Already have an account?{" "}
-            <a
-              href="#"
-              className="login-link"
-              onClick={() => navigate("/login")}
-            >
-              Sign In
+            <a className="login-link" onClick={() => navigate("/login")}>
+              Login
             </a>
           </p>
         </div>
