@@ -23,20 +23,14 @@ export default function SignupPage() {
   const handleSignup = async (e) => {
     e.preventDefault();
 
-    // Frontend validation
     if (formData.password !== formData.confirmPassword) {
       alert("Passwords do not match");
       return;
     }
 
-    if (formData.password.length < 8) {
-      alert("Password must be at least 8 characters");
-      return;
-    }
-
     try {
-      const res = awaitfetch(
-        "https://secure-voting.onrender.com/api/auth/signup",
+      const res = await fetch(
+        "https://secure-voting.onrender.com/api/auth/signin",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -54,7 +48,6 @@ export default function SignupPage() {
 
       if (!res.ok) throw new Error(data.message || "Registration failed");
 
-      // Auto login after register
       localStorage.setItem("token", data.token);
       localStorage.setItem(
         "user",
