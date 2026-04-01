@@ -20,9 +20,49 @@ export default function SignupPage() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSignup = (e) => {
+  const handleSignup = async (e) => {
     e.preventDefault();
-    console.log("Signup attempted:", formData);
+
+    // Frontend validation
+    if (formData.password !== formData.confirmPassword) {
+      alert("Passwords do not match");
+      return;
+    }
+
+    if (formData.password.length < 8) {
+      alert("Password must be at least 8 characters");
+      return;
+    }
+
+    try {
+      const res = await fetch("http://localhost:8080/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fullName: formData.fullName,
+          email: formData.email,
+          voterId: formData.voterId,
+          phone: formData.phone,
+          password: formData.password,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.message || "Registration failed");
+
+      // Auto login after register
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify({
+        email: data.email,
+        name: data.fullName,
+        role: data.role
+      }));
+
+      navigate("/"); // go to homepage
+    } catch (err) {
+      alert(err.message);
+    }
   };
 
   const EyeIcon = () => (
