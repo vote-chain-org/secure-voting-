@@ -7,10 +7,32 @@ export default function LoginPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleLogin = (e) => {
-    e.preventDefault();
-    console.log("Login attempted:", { username, password });
-  };
+ const handleLogin = async (e) => {
+   e.preventDefault();
+   try {
+     const res = await fetch("http://localhost:8080/api/auth/login", {
+       method: "POST",
+       headers: { "Content-Type": "application/json" },
+       body: JSON.stringify({ email: username, password }),
+     });
+
+     const data = await res.json();
+
+     if (!res.ok) throw new Error(data.message || "Invalid credentials");
+
+     // Save token and user info
+     localStorage.setItem("token", data.token);
+     localStorage.setItem("user", JSON.stringify({
+       email: data.email,
+       name: data.fullName,
+       role: data.role
+     }));
+
+     navigate("/"); // go to homepage after login
+   } catch (err) {
+     alert(err.message);
+   }
+ };
 
   return (
     <div className="login-root">
