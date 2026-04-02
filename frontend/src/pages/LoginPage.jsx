@@ -1,16 +1,20 @@
 import React, { useState } from "react";
 import "../styles/LoginPage.css";
 import { useNavigate } from "react-router-dom";
+
 export default function LoginPage() {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    setError("");
+    setLoading(true);
     try {
-      // store the fetch response
       const res = await fetch(
         "https://secure-voting.onrender.com/api/auth/login",
         {
@@ -19,12 +23,9 @@ export default function LoginPage() {
           body: JSON.stringify({ email: username, password }),
         },
       );
-
       const data = await res.json();
-
       if (!res.ok) throw new Error(data.message || "Invalid credentials");
 
-      // Save token and user info
       localStorage.setItem("token", data.token);
       localStorage.setItem(
         "user",
@@ -35,25 +36,26 @@ export default function LoginPage() {
         }),
       );
 
-      navigate("/"); // go to homepage after login
+      // Signal homepage to show welcome toast
+      sessionStorage.setItem("justLoggedIn", "true");
+      navigate("/");
     } catch (err) {
-      alert(err.message);
+      setError(err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div className="login-root">
-      {/* Full-screen background image – polling station */}
       <div className="bg-image" />
       <div className="bg-overlay" />
 
-      {/* Left side – branding & hero text */}
       <div className="login-left">
         <div className="login-brand">
           <span className="brand-icon">⛓</span>
           <span className="brand-name">ChainVote</span>
         </div>
-
         <div className="hero-text">
           <h1 className="hero-title">
             SECURE
@@ -74,11 +76,29 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* Right side – glassmorphism login card */}
       <div className="login-right">
         <div className="glass-card">
           <h2 className="card-title">Welcome Back</h2>
           <p className="card-sub">Sign in to cast your vote</p>
+
+          {/* Inline error */}
+          {error && (
+            <div className="form-error">
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
+              </svg>
+              {error}
+            </div>
+          )}
 
           <form onSubmit={handleLogin} className="login-form">
             <div className="field-group">
@@ -92,7 +112,6 @@ export default function LoginPage() {
                 required
               />
             </div>
-
             <div className="field-group">
               <label className="field-label">Password</label>
               <div className="pw-wrap">
@@ -138,15 +157,13 @@ export default function LoginPage() {
                 </button>
               </div>
             </div>
-
             <div className="forgot-row">
               <a href="#" className="forgot-link">
                 Forgot password?
               </a>
             </div>
-
-            <button type="submit" className="btn-signin">
-              SIGN IN
+            <button type="submit" className="btn-signin" disabled={loading}>
+              {loading ? <span className="btn-spinner" /> : "SIGN IN"}
             </button>
           </form>
 

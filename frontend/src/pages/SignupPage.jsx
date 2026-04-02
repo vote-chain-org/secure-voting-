@@ -13,6 +13,8 @@ export default function SignupPage() {
     password: "",
     confirmPassword: "",
   });
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
 
@@ -45,9 +47,9 @@ export default function SignupPage() {
       );
 
       const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Registration failed.");
 
-      if (!res.ok) throw new Error(data.message || "Registration failed");
-
+      // Auto-login after signup
       localStorage.setItem("token", data.token);
       localStorage.setItem(
         "user",
@@ -58,9 +60,13 @@ export default function SignupPage() {
         }),
       );
 
-      navigate("/"); // go to homepage
+      // Signal homepage to show congrats toast
+      sessionStorage.setItem("justSignedUp", "true");
+      navigate("/");
     } catch (err) {
-      alert(err.message);
+      setError(err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
