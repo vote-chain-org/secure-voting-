@@ -50,7 +50,8 @@ public class SecurityConfig {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(List.of(
                 "http://localhost:3000", // local React dev
-                "https://aryandeshpande11.github.io" // gh-pages
+                "https://aryandeshpande11.github.io",
+                "https://secure-voting.onrender.com" // gh-pages
         ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
