@@ -46,7 +46,9 @@ public class SecurityConfig {
         // setAllowedOriginPatterns is required when allowCredentials = true
         config.setAllowedOriginPatterns(List.of(
                 "http://localhost:3000",
+                "http://localhost:5173",
                 "https://aryandeshpande11.github.io",
+                "https://vote-chain-org.github.io",
                 "https://secure-voting.onrender.com"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
