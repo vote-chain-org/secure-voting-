@@ -10,6 +10,9 @@ import {
   CalendarDays,
   Lock,
   BarChart2,
+  LogOut,
+  User,
+  ChevronRight,
 } from "lucide-react";
 import "../styles/Homepage.css";
 import { useNavigate } from "react-router-dom";
@@ -83,19 +86,82 @@ export default function Homepage() {
   const [navScrolled, setNavScrolled] = useState(false);
   const lastScrollY = useRef(0);
 
+  // ── Auth state ───────────────────────────────────────────────
+  const [user, setUser] = useState(null);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [toast, setToast] = useState(null); // { type: 'success'|'info', msg }
+  const dropdownRef = useRef(null);
+
+  // Read user from localStorage on mount
+  useEffect(() => {
+    const stored = localStorage.getItem("user");
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      setUser(parsed);
+      // Show welcome toast if just logged in
+      const justLoggedIn = sessionStorage.getItem("justLoggedIn");
+      if (justLoggedIn) {
+        showToast(
+          "success",
+          `Welcome back, ${parsed.name?.split(" ")[0] || "Voter"}! 👋`,
+        );
+        sessionStorage.removeItem("justLoggedIn");
+      }
+      const justSignedUp = sessionStorage.getItem("justSignedUp");
+      if (justSignedUp) {
+        showToast(
+          "success",
+          `Account created! Welcome, ${parsed.name?.split(" ")[0] || "Voter"}! 🎉`,
+        );
+        sessionStorage.removeItem("justSignedUp");
+      }
+    }
+  }, []);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handler = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const showToast = (type, msg) => {
+    setToast({ type, msg });
+    setTimeout(() => setToast(null), 4000);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    setUser(null);
+    setDropdownOpen(false);
+    showToast("info", "You've been logged out successfully.");
+  };
+
+  // Get initials for avatar
+  const getInitials = (name) => {
+    if (!name) return "V";
+    const parts = name.trim().split(" ");
+    return parts.length >= 2
+      ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+      : parts[0][0].toUpperCase();
+  };
+
+  // ── Scroll hide/show nav ─────────────────────────────────────
   useEffect(() => {
     const handleScroll = () => {
       const currentY = window.scrollY;
-      // Show nav when: at top, or scrolling UP
       if (currentY < 10) {
         setNavVisible(true);
         setNavScrolled(false);
       } else if (currentY < lastScrollY.current) {
-        // Scrolling UP → show with frosted glass bg
         setNavVisible(true);
         setNavScrolled(true);
       } else if (currentY > lastScrollY.current + 8) {
-        // Scrolling DOWN → hide
         setNavVisible(false);
         setNavScrolled(true);
       }
@@ -104,8 +170,22 @@ export default function Homepage() {
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
   return (
     <div className="homepage">
+      {/* ── TOAST ── */}
+      {toast && (
+        <div className={`toast toast--${toast.type}`}>
+          <span className="toast-icon">
+            {toast.type === "success" ? "✓" : "ℹ"}
+          </span>
+          <span className="toast-msg">{toast.msg}</span>
+          <button className="toast-close" onClick={() => setToast(null)}>
+            ×
+          </button>
+        </div>
+      )}
+
       {/* ── NAV ── */}
       <nav
         className={`nav ${navScrolled ? "nav--scrolled" : ""} ${navVisible ? "" : "nav--hidden"}`}
@@ -132,6 +212,7 @@ export default function Homepage() {
           </div>
           <span className="logo-text">VoteChain</span>
         </div>
+
         <ul className="nav-links">
           <li className="active">
             <a href="#">Home</a>
@@ -153,19 +234,81 @@ export default function Homepage() {
             <a href="#">Results</a>
           </li>
         </ul>
+
         <div className="nav-right">
-          <button
-            className="nav-login-ghost"
-            onClick={() => navigate("/election/1")}
-          >
-            View Elections
-          </button>
-          <button className="nav-cta" onClick={() => navigate("/login")}>
-            Login to Vote
-          </button>
+          {user ? (
+            /* ── Logged-in: avatar + dropdown ── */
+            <div className="nav-user" ref={dropdownRef}>
+              <button
+                className="nav-user-btn"
+                onClick={() => setDropdownOpen((o) => !o)}
+              >
+                <div className="nav-avatar">{getInitials(user.name)}</div>
+                <div className="nav-user-info">
+                  <span className="nav-user-name">
+                    {user.name?.split(" ")[0]}
+                  </span>
+                  <span className="nav-user-role">{user.role || "Voter"}</span>
+                </div>
+                <ChevronDown
+                  size={14}
+                  strokeWidth={2.5}
+                  className={`nav-chevron ${dropdownOpen ? "nav-chevron--open" : ""}`}
+                />
+              </button>
+
+              {dropdownOpen && (
+                <div className="nav-dropdown">
+                  <div className="nav-dropdown-header">
+                    <div className="nav-dropdown-avatar">
+                      {getInitials(user.name)}
+                    </div>
+                    <div>
+                      <div className="nav-dropdown-name">{user.name}</div>
+                      <div className="nav-dropdown-email">{user.email}</div>
+                    </div>
+                  </div>
+                  <div className="nav-dropdown-divider" />
+                  <button
+                    className="nav-dropdown-item"
+                    onClick={() => navigate("/profile")}
+                  >
+                    <User size={14} strokeWidth={2} /> My Profile
+                    <ChevronRight size={13} className="nav-dropdown-arrow" />
+                  </button>
+                  <button
+                    className="nav-dropdown-item"
+                    onClick={() => navigate("/my-votes")}
+                  >
+                    <BarChart2 size={14} strokeWidth={2} /> My Votes
+                    <ChevronRight size={13} className="nav-dropdown-arrow" />
+                  </button>
+                  <div className="nav-dropdown-divider" />
+                  <button
+                    className="nav-dropdown-item nav-dropdown-item--danger"
+                    onClick={handleLogout}
+                  >
+                    <LogOut size={14} strokeWidth={2} /> Sign Out
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            /* ── Logged-out: original buttons ── */
+            <>
+              <button
+                className="nav-login-ghost"
+                onClick={() => navigate("/election/1")}
+              >
+                View Elections
+              </button>
+              <button className="nav-cta" onClick={() => navigate("/login")}>
+                Login to Vote
+              </button>
+            </>
+          )}
         </div>
       </nav>
-
       {/* ── HERO ── */}
       <section className="hero">
         <img
