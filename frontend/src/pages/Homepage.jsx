@@ -65,8 +65,8 @@ const heroFeatures = [
   },
   {
     icon: <Shield size={16} strokeWidth={2} />,
-    title: "Aadhaar Authentication",
-    desc: "Voters verified using Aadhaar-based identity to prevent duplicate voting.",
+    title: "Fingerprint Authentication",
+    desc: "Voters verified using biometric fingerprint scan to prevent duplicate voting.",
   },
   {
     icon: <BarChart2 size={16} strokeWidth={2} />,

@@ -54,7 +54,7 @@ export default function LoginPage() {
       <div className="login-left">
         <div className="login-brand">
           <span className="brand-icon">⛓</span>
-          <span className="brand-name">ChainVote</span>
+          <span className="brand-name">VoteChain</span>
         </div>
         <div className="hero-text">
           <h1 className="hero-title">
