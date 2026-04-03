@@ -287,3 +287,235 @@
     padding: 2rem 1.25rem;
   }
 }
+/* ── Error banner ── */
+.form-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  border-radius: 8px;
+  padding: 10px 13px;
+  color: #fca5a5;
+  font-size: 0.82rem;
+  margin-bottom: 0.6rem;
+}
+
+/* ── Spinner ── */
+.btn-spinner {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border: 2.5px solid rgba(0, 0, 0, 0.2);
+  border-top-color: #0d0f1c;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.btn-signup:disabled {
+  opacity: 0.75;
+  cursor: not-allowed;
+}
+
+/* ── Role list ── */
+.role-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.role-row {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 13px 15px;
+  cursor: pointer;
+  text-align: left;
+  transition:
+    background 0.18s,
+    border-color 0.18s;
+}
+.role-row:hover {
+  background: rgba(255, 255, 255, 0.09);
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+.role-row-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.65);
+  flex-shrink: 0;
+}
+
+.role-row-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.role-row-label {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.9);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.role-row-sub {
+  font-size: 0.74rem;
+  color: rgba(255, 255, 255, 0.38);
+}
+
+/* PRO badge on role row */
+.role-badge {
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #f5c518;
+  background: rgba(245, 197, 24, 0.12);
+  border: 1px solid rgba(245, 197, 24, 0.3);
+  border-radius: 4px;
+  padding: 1px 6px;
+}
+
+/* ── Back row ── */
+.role-back-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.role-back-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.18s;
+}
+.role-back-btn:hover {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.role-active-tag {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: rgba(107, 143, 255, 0.9);
+  background: rgba(107, 143, 255, 0.1);
+  border: 1px solid rgba(107, 143, 255, 0.22);
+  border-radius: 6px;
+  padding: 3px 10px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* ── Plan picker ── */
+.plan-section {
+  margin-top: 4px;
+}
+
+.plan-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.plan-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1.5px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 12px 10px 10px;
+  cursor: pointer;
+  text-align: left;
+  transition:
+    background 0.18s,
+    border-color 0.18s;
+}
+.plan-card:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.22);
+}
+.plan-card--active {
+  border-color: #6b8fff;
+  background: rgba(107, 143, 255, 0.1);
+}
+.plan-card--popular {
+  border-color: rgba(245, 197, 24, 0.4);
+}
+.plan-card--popular.plan-card--active {
+  border-color: #6b8fff;
+}
+
+.plan-popular-badge {
+  position: absolute;
+  top: -9px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: #0d0f1c;
+  background: #f5c518;
+  border-radius: 4px;
+  padding: 2px 7px;
+  white-space: nowrap;
+  text-transform: uppercase;
+}
+
+.plan-name {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.plan-price {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #6b8fff;
+  margin-bottom: 4px;
+}
+
+.plan-perks {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.plan-perks li {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.66rem;
+  color: rgba(255, 255, 255, 0.45);
+  line-height: 1.3;
+}
+.plan-perks li svg {
+  flex-shrink: 0;
+  color: #6b8fff;
+}
