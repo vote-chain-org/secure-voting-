@@ -148,6 +148,32 @@ export default function ProfilePage() {
   const [toast, setToast] = useState(null);
   const [form, setForm] = useState({ fullName: "", phone: "" });
 
+  useEffect(() => {
+    if (!getToken()) {
+      navigate("/login");
+      return;
+    }
+
+    authFetch(`${API}/api/user/profile`)
+      .then(async (res) => {
+        if (res.status === 401) {
+          localStorage.removeItem("token");
+          navigate("/login");
+          return;
+        }
+        if (!res.ok) {
+          throw new Error("Failed to load profile");
+        }
+        const data = await res.json();
+        setProfile(data);
+        setForm({ fullName: data.fullName || "", phone: data.phone || "" });
+      })
+      .catch((err) => {
+        console.error(err);
+        showToast("error", "Failed to load profile");
+      })
+      .finally(() => setLoading(false));
+  }, [navigate]);
   const handleSave = async () => {
     setSaving(true);
     try {
