@@ -29,6 +29,10 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/user/**").authenticated() // Add this
+                        .requestMatchers("/api/votes/**").authenticated() // Add this
+                        .requestMatchers("/api/elections/**").permitAll()
+
                         .anyRequest().authenticated());
 
         return http.build();
@@ -49,6 +53,7 @@ public class SecurityConfig {
                 "http://localhost:5173",
                 "https://aryandeshpande11.github.io",
                 "https://vote-chain-org.github.io",
+
                 "https://secure-voting.onrender.com"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));

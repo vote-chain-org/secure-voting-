@@ -21,8 +21,8 @@ public class JwtFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain chain)
+            HttpServletResponse response,
+            FilterChain chain)
             throws ServletException, IOException {
 
         String header = request.getHeader("Authorization");
@@ -32,8 +32,8 @@ public class JwtFilter extends OncePerRequestFilter {
             if (jwtUtil.isValid(token)) {
                 String email = jwtUtil.extractEmail(token);
                 // Set authenticated user in Spring Security context
-                UsernamePasswordAuthenticationToken auth =
-                        new UsernamePasswordAuthenticationToken(email, null, List.of());
+                UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(email, null,
+                        List.of());
                 SecurityContextHolder.getContext().setAuthentication(auth);
             }
         }
