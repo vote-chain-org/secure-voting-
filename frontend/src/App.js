@@ -5,6 +5,8 @@ import LoginPage from "./pages/LoginPage";
 import ElectionDetail from "./pages/ElectionDetail";
 import SignupPage from "./pages/SignupPage";
 import PricingPage from "./pages/PricingPage";
+import ProfilePage from "./pages/ProfilePage";
+import MyVotesPage from "./pages/MyVotesPage";
 export default function App() {
   return (
     <HashRouter>
@@ -15,6 +17,8 @@ export default function App() {
         <Route path="*" element={<Navigate to="/" replace />} />
         <Route path="/signup" element={<SignupPage />} />;
         <Route path="/pricing" element={<PricingPage />} />
+        <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/my-votes" element={<MyVotesPage />} />
       </Routes>
     </HashRouter>
   );

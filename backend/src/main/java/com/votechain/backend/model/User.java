@@ -1,14 +1,13 @@
-
 package com.votechain.backend.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
 
-
 @Data
 @Entity
-@Table(name="users")
+@Table(name = "users")
 public class User {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -16,13 +15,13 @@ public class User {
     @Column(nullable = false)
     private String fullName;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String email;
 
     @Column(nullable = false)
     private String password;
 
-    @Column(nullable=false , unique = true)
+    @Column(nullable = false, unique = true)
     private String voterId;
 
     private String phone;
@@ -30,4 +29,6 @@ public class User {
     @Column(nullable = false)
     private String role = "VOTER";
 
+    @Column(columnDefinition = "TEXT")
+    private String profilePhoto;
 }
