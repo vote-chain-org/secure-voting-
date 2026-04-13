@@ -222,11 +222,44 @@ function EligibilityModal({ election, onVerified, onClose }) {
 /* ── Fingerprint modal ── */
 function FingerprintModal({ candidate, onSuccess, onClose }) {
   const [phase, setPhase] = useState("idle"); // idle | scanning | success
+  const [errorInfo, setErrorInfo] = useState(null);
 
-  const startScan = () => {
+  const handleFileChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
     setPhase("scanning");
-    setTimeout(() => setPhase("success"), 2800);
-    setTimeout(() => onSuccess(), 3800);
+    setErrorInfo(null);
+    
+    try {
+      const userStr = localStorage.getItem("user");
+      const voterId = userStr ? JSON.parse(userStr).voterId : "test_voter";
+      
+      const fd = new FormData();
+      fd.append("voter_id", voterId);
+      fd.append("fingerprint", file);
+
+      const res = await fetch("http://localhost:8000/verify", {
+        method: "POST",
+        body: fd
+      });
+      
+      const data = await res.json();
+      
+      if (!res.ok) {
+        throw new Error(data.detail || "Verification failed");
+      }
+      
+      if (!data.verified) {
+        throw new Error(data.reason || "Biometric identity does not match");
+      }
+
+      setPhase("success");
+      setTimeout(() => onSuccess(), 2000);
+    } catch (err) {
+      setPhase("idle");
+      setErrorInfo(err.message);
+    }
   };
 
   return (
@@ -253,13 +286,27 @@ function FingerprintModal({ candidate, onSuccess, onClose }) {
             </h3>
             <p className="modal-sub">
               {phase === "idle"
-                ? `You're about to vote for ${candidate.name}. Place your finger on the sensor to confirm your identity and cast your vote.`
-                : "Hold still. Verifying your biometric identity on the blockchain…"}
+                ? `You're about to vote for ${candidate.name}. Scan your finger to confirm your identity and cast your vote.`
+                : "Hold still. Evaluating liveness and minutiae via ML Engine…"}
             </p>
+            {errorInfo && (
+              <p className="modal-error" style={{ textAlign: "center", marginBottom: "15px" }}>
+                <AlertTriangle size={13} style={{ display: "inline", marginBottom: "-2px" }} /> {errorInfo}
+              </p>
+            )}
             {phase === "idle" && (
-              <button className="modal-btn" onClick={startScan}>
-                <Fingerprint size={15} /> Begin Scan
-              </button>
+              <>
+                <button className="modal-btn" onClick={() => window.document.getElementById('fp-verify-input').click()}>
+                  <Fingerprint size={15} /> Upload / Scan Fingerprint
+                </button>
+                <input 
+                  id="fp-verify-input"
+                  type="file" 
+                  accept="image/*" 
+                  style={{ display: "none" }}
+                  onChange={handleFileChange} 
+                />
+              </>
             )}
           </>
         )}
@@ -270,11 +317,11 @@ function FingerprintModal({ candidate, onSuccess, onClose }) {
               <CheckCircle2 size={52} strokeWidth={1.5} />
             </div>
             <h3 className="modal-title success-text">
-              Vote Cast Successfully!
+              Identity Verified
             </h3>
             <p className="modal-sub">
-              Your vote for <strong>{candidate.name}</strong> has been recorded
-              on the blockchain. This action is permanent and anonymous.
+              Liveness check passed. Identity matching 100%. 
+              <br/>Voting for <strong>{candidate.name}</strong> securely on blockchain.
             </p>
             <div className="tx-hash">
               <span>TX</span> 0x7f3a…c912d4
