@@ -698,6 +698,45 @@
 }
 
 /* ─────────────────────────────────────────
+   FINGERPRINT UPLOAD AREA
+───────────────────────────────────────── */
+.fp-upload-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.fp-upload-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #f0f4ff;
+  border: 1.5px dashed #a5b4fc;
+  padding: 12px 22px;
+  border-radius: 10px;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--primary);
+  cursor: pointer;
+  transition: background 0.18s, border-color 0.18s;
+  width: 100%;
+  justify-content: center;
+}
+.fp-upload-btn:hover {
+  background: #e0e8ff;
+  border-color: var(--primary);
+}
+
+.fp-file-info {
+  font-size: 0.72rem;
+  color: var(--muted);
+  font-weight: 400;
+}
+
+/* ─────────────────────────────────────────
    RESPONSIVE
 ───────────────────────────────────────── */
 @media (max-width: 900px) {
@@ -717,3 +756,4 @@
     padding: 32px 24px 28px;
   }
 }
+

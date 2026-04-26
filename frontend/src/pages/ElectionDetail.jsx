@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   MapPin,
@@ -6,7 +6,6 @@ import {
   Users,
   ArrowLeft,
   ShieldCheck,
-  ShieldX,
   CheckCircle2,
   Clock,
   ChevronRight,
@@ -15,6 +14,7 @@ import {
   AlertTriangle,
   Fingerprint,
   X,
+  Upload,
 } from "lucide-react";
 import "../styles/ElectionDetail.css";
 
@@ -219,14 +219,86 @@ function EligibilityModal({ election, onVerified, onClose }) {
   );
 }
 
-/* ── Fingerprint modal ── */
-function FingerprintModal({ candidate, onSuccess, onClose }) {
-  const [phase, setPhase] = useState("idle"); // idle | scanning | success
+const SCANNER_URL = "http://localhost:9000";
 
-  const startScan = () => {
+/* ── Fingerprint modal (with scanner integration) ── */
+function FingerprintModal({ candidate, election, onSuccess, onClose }) {
+  const [phase, setPhase] = useState("idle"); // idle | scanning | success
+  const [fpScanning, setFpScanning] = useState(false);
+  const [errorInfo, setErrorInfo] = useState(null);
+  const [txHash, setTxHash] = useState(null);
+  const [fpRaw, setFpRaw] = useState(null);
+  const [fpWidth, setFpWidth] = useState(0);
+  const [fpHeight, setFpHeight] = useState(0);
+
+  const API = process.env.REACT_APP_API_URL || "http://192.168.0.108:8080";
+
+  const handleScan = async () => {
+    setFpScanning(true);
+    setErrorInfo(null);
+    try {
+      const res = await fetch(`${SCANNER_URL}/capture`, { method: "POST" });
+      if (!res.ok) throw new Error("Scanner not reachable (status " + res.status + ")");
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      if (!data.rawBase64) throw new Error("Invalid base64 response from scanner");
+
+      setFpRaw(data.rawBase64);
+      setFpWidth(data.width);
+      setFpHeight(data.height);
+    } catch (err) {
+      alert("Scanner capture failed: " + err.message);
+      setErrorInfo(err.message);
+    } finally {
+      setFpScanning(false);
+    }
+  };
+
+  const handleVote = async () => {
+    if (!fpRaw) {
+      setErrorInfo("Please scan your fingerprint first.");
+      return;
+    }
+
     setPhase("scanning");
-    setTimeout(() => setPhase("success"), 2800);
-    setTimeout(() => onSuccess(), 3800);
+    setErrorInfo(null);
+
+    try {
+      // Build multipart form data
+      // NOTE: No voterId is sent — backend gets it from auth token
+      const formData = new FormData();
+      formData.append("fingerprintRawB64", fpRaw);
+      formData.append("fpWidth", fpWidth);
+      formData.append("fpHeight", fpHeight);
+      formData.append("candidateId", String(candidate.id));
+      formData.append("electionId", String(election.id));
+      formData.append("electionTitle", election.title);
+      formData.append("region", election.region);
+      formData.append("status", election.status);
+      formData.append("electionImg", election.img);
+
+      const res = await fetch(`${API}/api/votes/cast`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${localStorage.getItem("token")}`
+        },
+        body: formData,
+        // No Content-Type header — browser sets multipart boundary automatically
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || data.status === "failed") {
+        throw new Error(data.reason || data.error || "Vote submission failed");
+      }
+
+      setTxHash(data.txHash || "pending");
+      setPhase("success");
+      setTimeout(() => onSuccess(), 2500);
+    } catch (err) {
+      setPhase("idle");
+      setErrorInfo(err.message);
+    }
   };
 
   return (
@@ -249,16 +321,37 @@ function FingerprintModal({ candidate, onSuccess, onClose }) {
               <Fingerprint size={52} strokeWidth={1.2} />
             </div>
             <h3 className="modal-title">
-              {phase === "idle" ? "Fingerprint Verification" : "Scanning…"}
+              {phase === "idle" ? "Fingerprint Verification" : "Processing…"}
             </h3>
             <p className="modal-sub">
               {phase === "idle"
-                ? `You're about to vote for ${candidate.name}. Place your finger on the sensor to confirm your identity and cast your vote.`
-                : "Hold still. Verifying your biometric identity on the blockchain…"}
+                ? `You're about to vote for ${candidate.name}. Scan your fingerprint to verify your identity and record your vote on the blockchain.`
+                : "Verifying fingerprint via ML Engine and writing vote to blockchain…"}
             </p>
+
+            {/* Fingerprint Scanner Capture */}
             {phase === "idle" && (
-              <button className="modal-btn" onClick={startScan}>
-                <Fingerprint size={15} /> Begin Scan
+              <div className="fp-upload-area">
+                <button
+                  className="fp-upload-btn"
+                  onClick={handleScan}
+                  disabled={fpScanning}
+                  style={{ cursor: fpScanning ? "wait" : "pointer" }}
+                >
+                  <Fingerprint size={16} />
+                  {fpScanning ? "Scanning..." : fpRaw ? "Fingerprint Captured ✓" : "Scan Fingerprint"}
+                </button>
+              </div>
+            )}
+
+            {errorInfo && (
+              <p className="modal-error" style={{ textAlign: "center", marginBottom: "15px" }}>
+                <AlertTriangle size={13} style={{ display: "inline", marginBottom: "-2px" }} /> {errorInfo}
+              </p>
+            )}
+            {phase === "idle" && (
+              <button className="modal-btn" onClick={handleVote}>
+                <Fingerprint size={15} /> Verify & Vote
               </button>
             )}
           </>
@@ -270,15 +363,17 @@ function FingerprintModal({ candidate, onSuccess, onClose }) {
               <CheckCircle2 size={52} strokeWidth={1.5} />
             </div>
             <h3 className="modal-title success-text">
-              Vote Cast Successfully!
+              Vote Recorded!
             </h3>
             <p className="modal-sub">
-              Your vote for <strong>{candidate.name}</strong> has been recorded
-              on the blockchain. This action is permanent and anonymous.
+              Identity verified via fingerprint. Your vote for <strong>{candidate.name}</strong> has been
+              securely recorded on the blockchain.
             </p>
-            <div className="tx-hash">
-              <span>TX</span> 0x7f3a…c912d4
-            </div>
+            {txHash && (
+              <div className="tx-hash">
+                <span>TX</span> {txHash.length > 16 ? txHash.substring(0, 8) + "…" + txHash.substring(txHash.length - 6) : txHash}
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -480,6 +575,7 @@ export default function ElectionDetail() {
       {showFingerprint && selectedCandidate && (
         <FingerprintModal
           candidate={selectedCandidate}
+          election={election}
           onSuccess={handleVoteSuccess}
           onClose={() => setShowFingerprint(false)}
         />

@@ -1,0 +1,27 @@
+#*************************************************************
+#*
+#* Author :      SecuGen Corporation
+#* Description : AUTO ON Makefile
+#* Copyright(c): 2009 SecuGen Corporation, All rights reserved
+#* date        person   comments
+#* ======================================================
+#* 12/10/2009  driley   initial release
+#*
+#*************************************************************
+
+CFLAGS = -DLINUX3 $(DEFS)
+INCPATH = -I./ -I../include
+LIBS =  -L../lib
+
+TARGET = ../bin/$(PORT)/auto_on_callback
+
+all : $(TARGET)
+
+$(TARGET) : $(OBJS)
+	$(CXX) $(CFLAGS) $(INCPATH) -o $@ main.cpp $(LIBS) -lsgfplib
+
+clean :
+	rm -rf *.raw $(OBJS) $(TARGET)
+	rm -rf $(PORT)
+	mkdir $(PORT)
+

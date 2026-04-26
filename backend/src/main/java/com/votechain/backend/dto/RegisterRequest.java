@@ -10,4 +10,7 @@ public class RegisterRequest {
     private String phone;
     private String password;
     private String confirmPassword;
+    private String fingerprintRawB64;
+    private Integer fpWidth;
+    private Integer fpHeight;
 }

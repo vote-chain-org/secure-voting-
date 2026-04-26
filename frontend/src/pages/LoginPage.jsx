@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import "../styles/LoginPage.css";
 import { useNavigate } from "react-router-dom";
 
-const apiBase = "https://secure-voting.onrender.com/api/auth/login";
+const apiBase = (process.env.REACT_APP_API_URL || "http://192.168.0.108:8080") + "/api/auth/login";
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -38,8 +38,9 @@ export default function LoginPage() {
       sessionStorage.setItem("justLoggedIn", "true");
 
       // Route based on role returned from backend
-      if (data.role === "admin") navigate("/admin/dashboard");
-      else if (data.role === "organization") navigate("/org/dashboard");
+      const userRole = data.role ? data.role.toLowerCase() : "";
+      if (userRole === "admin") navigate("/admin");
+      else if (userRole === "organization") navigate("/org/dashboard");
       else navigate("/");
     } catch (err) {
       setError(err.message);

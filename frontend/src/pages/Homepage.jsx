@@ -13,6 +13,7 @@ import {
   LogOut,
   User,
   ChevronRight,
+  Settings,
 } from "lucide-react";
 import "../styles/Homepage.css";
 import { useNavigate } from "react-router-dom";
@@ -36,25 +37,7 @@ const activeElections = [
     candidates: 7,
     status: "Live",
     img: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=700&q=80&fit=crop",
-  },
-  {
-    id: 2,
-    title: "Zilla Parishad Ward No. 14 By-Election",
-    region: "Nashik District, Maharashtra",
-    date: "18 Apr 2025",
-    candidates: 5,
-    status: "Live",
-    img: "https://images.unsplash.com/photo-1587825140708-dfaf72ae4b04?w=700&q=80&fit=crop",
-  },
-  {
-    id: 3,
-    title: "NSS Unit Leader Election",
-    region: "Fergusson College, Pune",
-    date: "22 Apr 2025",
-    candidates: 4,
-    status: "Upcoming",
-    img: "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=700&q=80&fit=crop",
-  },
+  }
 ];
 
 const heroFeatures = [
@@ -283,6 +266,15 @@ export default function Homepage() {
                     <BarChart2 size={14} strokeWidth={2} /> My Votes
                     <ChevronRight size={13} className="nav-dropdown-arrow" />
                   </button>
+                  {user.role === "ADMIN" && (
+                    <button
+                      className="nav-dropdown-item"
+                      onClick={() => navigate("/admin")}
+                    >
+                      <Settings size={14} strokeWidth={2} /> Admin Dashboard
+                      <ChevronRight size={13} className="nav-dropdown-arrow" />
+                    </button>
+                  )}
                   <div className="nav-dropdown-divider" />
                   <button
                     className="nav-dropdown-item nav-dropdown-item--danger"
@@ -436,7 +428,7 @@ export default function Homepage() {
             {activeElections.map((el, i) => (
               <div
                 key={el.id}
-                className={`el-card ${i === 1 ? "el-card--featured" : ""}`}
+                className={`el-card ${i === 0 ? "el-card--featured" : ""}`}
                 onClick={() => navigate(`/election/${el.id}`)}
                 style={{ cursor: "pointer" }}
               >
@@ -453,7 +445,7 @@ export default function Homepage() {
                     <MapPin size={12} strokeWidth={2} />
                     {el.region}
                   </div>
-                  {i === 1 && (
+                  {i === 0 && (
                     <div className="el-card-details">
                       <span>
                         <Users size={12} strokeWidth={2} /> {el.candidates}{" "}

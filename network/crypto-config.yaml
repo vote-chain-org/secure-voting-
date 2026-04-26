@@ -1,0 +1,20 @@
+# ── Cryptogen Configuration (Simplified) ─────────────────────────────
+# Single organization setup for the voting prototype.
+# Run: cryptogen generate --config=crypto-config.yaml
+# ─────────────────────────────────────────────────────────────────────
+
+OrdererOrgs:
+  - Name: Orderer
+    Domain: election.example.com
+    EnableNodeOUs: true
+    Specs:
+      - Hostname: orderer
+
+PeerOrgs:
+  - Name: Org1
+    Domain: org1.example.com
+    EnableNodeOUs: true
+    Template:
+      Count: 1
+    Users:
+      Count: 1

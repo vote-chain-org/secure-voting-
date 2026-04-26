@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/MyVotesPage.css";
 
-const API = "https://secure-voting.onrender.com";
+const API = process.env.REACT_APP_API_URL || "http://192.168.0.108:8080";
 const getToken = () => localStorage.getItem("token");
 const authFetch = (url) =>
   fetch(url, { headers: { Authorization: `Bearer ${getToken()}` } });

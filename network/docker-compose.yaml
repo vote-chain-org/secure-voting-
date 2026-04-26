@@ -1,0 +1,17 @@
+# ── Network Docker Compose ───────────────────────────────────────────
+# This is a symlink/reference to docker/docker-compose-network.yml.
+# The actual Fabric network compose lives in ../docker/docker-compose-network.yml
+# This file is kept here for convenience — it's the same network definition.
+#
+# Usage:
+#   docker-compose -f docker/docker-compose-network.yml up -d
+# Or from this directory:
+#   docker-compose -f docker-compose.yaml up -d
+# ─────────────────────────────────────────────────────────────────────
+
+version: "3.8"
+
+# See docker/docker-compose-network.yml for the full network definition.
+# This file exists as a convenience reference within the network/ directory.
+# The canonical compose file for the Fabric network is:
+#   git_cloned/docker/docker-compose-network.yml

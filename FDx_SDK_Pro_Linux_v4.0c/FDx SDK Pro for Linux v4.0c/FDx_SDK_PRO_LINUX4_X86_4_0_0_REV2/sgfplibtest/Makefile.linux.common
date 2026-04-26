@@ -1,0 +1,40 @@
+#*************************************************************
+#*
+#* Author :      SecuGen Corporation
+#* Description : FPLibTest Makefile
+#* Copyright(c): 2009 SecuGen Corporation, All rights reserved
+#* date        person   comments
+#* ======================================================
+#* 12/10/2009  driley   initial release
+#* 05/17/2019  driley   Support libsgfplib dynamic driver loading
+#*************************************************************
+
+CFLAGS = -D__cplusplus -Wall -O
+INCPATH = -I./ -I../include
+
+OBJS=	main.o
+
+SRCS=	main.cpp
+
+TARGET = ../bin/$(PORT)/sgfplibtest
+
+all : $(TARGET)
+
+$(TARGET) : $(OBJS)
+	$(CXX) -o $@ $(OBJS) $(LIBS) -lsgfplib
+
+.cc.o :
+	$(CXX) $(FLAGS) $(INCPATH) -c $<
+
+.c.o :
+	$(CXX) $(FLAGS) $(INCPATH) -c $<
+
+.cpp.o :
+	$(CXX) $(FLAGS) $(INCPATH) -c $<
+
+dep :
+	gccmakedep $(INCPATH) $(SRCS)
+
+clean :
+	rm -rf *.raw $(OBJS) $(TARGET)
+

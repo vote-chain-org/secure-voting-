@@ -621,9 +621,10 @@ body {
 ───────────────────────────────────────── */
 .elections-grid {
   display: grid;
-  grid-template-columns: 1fr 1.4fr 1fr;
+  grid-template-columns: minmax(auto, 550px);
+  justify-content: center;
   gap: 20px;
-  align-items: end;
+  align-items: center;
 }
 
 .el-card {

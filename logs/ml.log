@@ -1,0 +1,16 @@
+INFO:     Started server process [83267]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:5000 (Press CTRL+C to quit)
+[startup] Liveness model loaded from models/best_model.pt
+[startup] Connected to database
+[startup] Thresholds: liveness=0.0, match=0.4
+INFO:     127.0.0.1:55296 - "POST /verify HTTP/1.1" 200 OK
+SDK template creation failed for 2: No module named 'sdk'
+INFO:     127.0.0.1:33438 - "POST /enroll HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43916 - "POST /verify HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45082 - "POST /verify HTTP/1.1" 200 OK
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [83267]

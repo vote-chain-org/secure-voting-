@@ -31,4 +31,13 @@ public class User {
 
     @Column(columnDefinition = "TEXT")
     private String profilePhoto;
+
+    @Column(columnDefinition = "TEXT")
+    private String fingerprintRawB64;
+
+    @Column
+    private Integer fpWidth;
+
+    @Column
+    private Integer fpHeight;
 }

@@ -1,0 +1,106 @@
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v3.4.4)
+
+2026-04-26T12:59:39.992+05:30  INFO 83524 --- [  restartedMain] c.votechain.backend.BackendApplication   : Starting BackendApplication using Java 17.0.18 with PID 83524 (/home/shreyas/Downloads/GIT_CLONES/devansh/secure-voting-/final_project/backend/target/classes started by shreyas in /home/shreyas/Downloads/GIT_CLONES/devansh/secure-voting-/final_project/backend)
+2026-04-26T12:59:39.995+05:30  INFO 83524 --- [  restartedMain] c.votechain.backend.BackendApplication   : No active profile set, falling back to 1 default profile: "default"
+2026-04-26T12:59:40.022+05:30  INFO 83524 --- [  restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : Devtools property defaults active! Set 'spring.devtools.add-properties' to 'false' to disable
+2026-04-26T12:59:40.022+05:30  INFO 83524 --- [  restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : For additional web related logging consider setting the 'logging.level.web' property to 'DEBUG'
+2026-04-26T12:59:40.389+05:30  INFO 83524 --- [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-04-26T12:59:40.470+05:30  INFO 83524 --- [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 76 ms. Found 2 JPA repository interfaces.
+2026-04-26T12:59:40.932+05:30  INFO 83524 --- [  restartedMain] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
+2026-04-26T12:59:40.942+05:30  INFO 83524 --- [  restartedMain] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-04-26T12:59:40.943+05:30  INFO 83524 --- [  restartedMain] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.39]
+2026-04-26T12:59:40.967+05:30  INFO 83524 --- [  restartedMain] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-04-26T12:59:40.968+05:30  INFO 83524 --- [  restartedMain] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 944 ms
+2026-04-26T12:59:41.055+05:30  INFO 83524 --- [  restartedMain] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-04-26T12:59:41.081+05:30  INFO 83524 --- [  restartedMain] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.6.11.Final
+2026-04-26T12:59:41.099+05:30  INFO 83524 --- [  restartedMain] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-04-26T12:59:41.231+05:30  INFO 83524 --- [  restartedMain] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-04-26T12:59:41.246+05:30  INFO 83524 --- [  restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-04-26T12:59:41.399+05:30  INFO 83524 --- [  restartedMain] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@5223179
+2026-04-26T12:59:41.400+05:30  INFO 83524 --- [  restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-04-26T12:59:41.417+05:30  WARN 83524 --- [  restartedMain] org.hibernate.orm.deprecation            : HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-04-26T12:59:41.429+05:30  INFO 83524 --- [  restartedMain] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [Connecting through datasource 'HikariDataSource (HikariPool-1)']
+	Database driver: undefined/unknown
+	Database version: 16.13
+	Autocommit mode: undefined/unknown
+	Isolation level: undefined/unknown
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-04-26T12:59:41.860+05:30  INFO 83524 --- [  restartedMain] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-04-26T12:59:41.966+05:30  INFO 83524 --- [  restartedMain] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-04-26T12:59:42.173+05:30  INFO 83524 --- [  restartedMain] c.v.backend.service.FabricService        : Initializing Fabric Gateway connection to localhost:7051
+2026-04-26T12:59:42.174+05:30  INFO 83524 --- [  restartedMain] c.v.backend.service.FabricService        :   Cert:    /home/shreyas/Downloads/GIT_CLONES/devansh/secure-voting-/final_project/network/crypto-config/peerOrganizations/org1.example.com/users/User1@org1.example.com/msp/signcerts/User1@org1.example.com-cert.pem
+2026-04-26T12:59:42.174+05:30  INFO 83524 --- [  restartedMain] c.v.backend.service.FabricService        :   Key:     /home/shreyas/Downloads/GIT_CLONES/devansh/secure-voting-/final_project/network/crypto-config/peerOrganizations/org1.example.com/users/User1@org1.example.com/msp/keystore/priv_sk
+2026-04-26T12:59:42.174+05:30  INFO 83524 --- [  restartedMain] c.v.backend.service.FabricService        :   TLS CA:  /home/shreyas/Downloads/GIT_CLONES/devansh/secure-voting-/final_project/network/crypto-config/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt
+2026-04-26T12:59:42.558+05:30  INFO 83524 --- [  restartedMain] c.v.backend.service.FabricService        : Fabric Gateway connected — channel=electionchannel, chaincode=voting
+2026-04-26T12:59:42.698+05:30  WARN 83524 --- [  restartedMain] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-04-26T12:59:42.709+05:30  WARN 83524 --- [  restartedMain] .s.s.UserDetailsServiceAutoConfiguration : 
+
+Using generated security password: 6556a3bd-a863-4586-8bcd-5d156d3b838b
+
+This generated password is for development use only. Your security configuration must be updated before running your application in production.
+
+2026-04-26T12:59:42.713+05:30  INFO 83524 --- [  restartedMain] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with UserDetailsService bean with name inMemoryUserDetailsManager
+2026-04-26T12:59:42.995+05:30  INFO 83524 --- [  restartedMain] o.s.b.d.a.OptionalLiveReloadServer       : LiveReload server is running on port 35729
+2026-04-26T12:59:43.014+05:30  INFO 83524 --- [  restartedMain] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8080 (http) with context path '/'
+2026-04-26T12:59:43.021+05:30  INFO 83524 --- [  restartedMain] c.votechain.backend.BackendApplication   : Started BackendApplication in 3.237 seconds (process running for 3.485)
+2026-04-26T12:59:43.722+05:30  INFO 83524 --- [nio-8080-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-04-26T12:59:43.723+05:30  INFO 83524 --- [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-04-26T12:59:43.724+05:30  INFO 83524 --- [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms
+Hibernate: select u1_0.id,u1_0.email,u1_0.fingerprint_rawb64,u1_0.fp_height,u1_0.fp_width,u1_0.full_name,u1_0.password,u1_0.phone,u1_0.profile_photo,u1_0.role,u1_0.voter_id from users u1_0 where u1_0.email is null
+2026-04-26T12:59:43.867+05:30  WARN 83524 --- [nio-8080-exec-1] .m.m.a.ExceptionHandlerExceptionResolver : Resolved [java.lang.RuntimeException: Invalid email or password]
+Hibernate: select u1_0.id,u1_0.email,u1_0.fingerprint_rawb64,u1_0.fp_height,u1_0.fp_width,u1_0.full_name,u1_0.password,u1_0.phone,u1_0.profile_photo,u1_0.role,u1_0.voter_id from users u1_0 where u1_0.email is null
+2026-04-26T12:59:43.884+05:30  WARN 83524 --- [nio-8080-exec-2] .m.m.a.ExceptionHandlerExceptionResolver : Resolved [java.lang.RuntimeException: Invalid email or password]
+Hibernate: select u1_0.id from users u1_0 where u1_0.email=? fetch first ? rows only
+2026-04-26T12:59:43.958+05:30  WARN 83524 --- [nio-8080-exec-3] .m.m.a.ExceptionHandlerExceptionResolver : Resolved [java.lang.RuntimeException: Email already registered]
+Hibernate: select u1_0.id from users u1_0 where u1_0.email=? fetch first ? rows only
+2026-04-26T12:59:43.975+05:30  WARN 83524 --- [nio-8080-exec-4] .m.m.a.ExceptionHandlerExceptionResolver : Resolved [java.lang.RuntimeException: Email already registered]
+Hibernate: select u1_0.id from users u1_0 where u1_0.email=? fetch first ? rows only
+2026-04-26T12:59:43.991+05:30  WARN 83524 --- [nio-8080-exec-5] .m.m.a.ExceptionHandlerExceptionResolver : Resolved [java.lang.RuntimeException: Email already registered]
+Hibernate: select u1_0.id,u1_0.email,u1_0.fingerprint_rawb64,u1_0.fp_height,u1_0.fp_width,u1_0.full_name,u1_0.password,u1_0.phone,u1_0.profile_photo,u1_0.role,u1_0.voter_id from users u1_0 where u1_0.email=?
+Hibernate: select u1_0.id,u1_0.email,u1_0.fingerprint_rawb64,u1_0.fp_height,u1_0.fp_width,u1_0.full_name,u1_0.password,u1_0.phone,u1_0.profile_photo,u1_0.role,u1_0.voter_id from users u1_0 where u1_0.email=?
+Hibernate: select u1_0.id,u1_0.email,u1_0.fingerprint_rawb64,u1_0.fp_height,u1_0.fp_width,u1_0.full_name,u1_0.password,u1_0.phone,u1_0.profile_photo,u1_0.role,u1_0.voter_id from users u1_0 where u1_0.email=?
+2026-04-26T13:01:27.505+05:30  INFO 83524 --- [nio-8080-exec-9] c.v.backend.service.MlClientService      : Sending fingerprint to ML service for verification: voterId=1
+2026-04-26T13:01:27.891+05:30  INFO 83524 --- [nio-8080-exec-9] c.votechain.backend.service.VoteService  : [VoteService] ML verified: liveness=0.0, match=0.4194, sdk=null
+Hibernate: select v1_0.id from votes v1_0 left join users u1_0 on u1_0.id=v1_0.user_id where u1_0.voter_id=? and v1_0.election_id=? fetch first ? rows only
+2026-04-26T13:01:27.901+05:30  INFO 83524 --- [nio-8080-exec-9] c.v.backend.service.FabricService        : Submitting vote to blockchain — voter=1, candidate=2
+2026-04-26T13:01:30.389+05:30  INFO 83524 --- [nio-8080-exec-9] c.v.backend.service.FabricService        : Vote committed on blockchain — txId=4d4ab0b9985127721e4738d700e1ca32b89d7016e8d836402c764f65ff120590
+Hibernate: select u1_0.id,u1_0.email,u1_0.fingerprint_rawb64,u1_0.fp_height,u1_0.fp_width,u1_0.full_name,u1_0.password,u1_0.phone,u1_0.profile_photo,u1_0.role,u1_0.voter_id from users u1_0 where u1_0.voter_id=?
+Hibernate: insert into votes (candidate_id,election_id,election_img,election_title,region,status,tx_hash,user_id,voted_at) values (?,?,?,?,?,?,?,?,?)
+2026-04-26T13:01:30.438+05:30  INFO 83524 --- [nio-8080-exec-9] c.votechain.backend.service.VoteService  : Vote saved — voter=1, candidate=2, txId=4d4ab0b9985127721e4738d700e1ca32b89d7016e8d836402c764f65ff120590
+Hibernate: select u1_0.id from users u1_0 where u1_0.email=? fetch first ? rows only
+Hibernate: insert into users (email,fingerprint_rawb64,fp_height,fp_width,full_name,password,phone,profile_photo,role,voter_id) values (?,?,?,?,?,?,?,?,?,?)
+2026-04-26T13:02:20.599+05:30  INFO 83524 --- [nio-8080-exec-1] c.votechain.backend.service.AuthService  : User registered in DB: email=2@mail.com, voterId=2
+2026-04-26T13:02:20.606+05:30  INFO 83524 --- [nio-8080-exec-1] c.v.backend.service.MlClientService      : Sending fingerprint to ML service for enrollment: voterId=2
+2026-04-26T13:02:20.679+05:30  INFO 83524 --- [nio-8080-exec-1] c.v.backend.service.MlClientService      : [MlClient] Enrolled voter 2 in ML service
+2026-04-26T13:02:20.680+05:30  INFO 83524 --- [nio-8080-exec-1] c.v.backend.service.FabricService        : Registering voter on blockchain — voterId=2
+2026-04-26T13:02:22.727+05:30  INFO 83524 --- [nio-8080-exec-1] c.votechain.backend.service.AuthService  : Voter registered on blockchain: voterId=2
+Hibernate: select u1_0.id,u1_0.email,u1_0.fingerprint_rawb64,u1_0.fp_height,u1_0.fp_width,u1_0.full_name,u1_0.password,u1_0.phone,u1_0.profile_photo,u1_0.role,u1_0.voter_id from users u1_0 where u1_0.email=?
+Hibernate: select u1_0.id,u1_0.email,u1_0.fingerprint_rawb64,u1_0.fp_height,u1_0.fp_width,u1_0.full_name,u1_0.password,u1_0.phone,u1_0.profile_photo,u1_0.role,u1_0.voter_id from users u1_0 where u1_0.email=?
+2026-04-26T13:03:25.102+05:30  INFO 83524 --- [nio-8080-exec-3] c.v.backend.service.MlClientService      : Sending fingerprint to ML service for verification: voterId=2
+2026-04-26T13:03:25.205+05:30  WARN 83524 --- [nio-8080-exec-3] c.votechain.backend.service.VoteService  : ML verification failed for voter=2: no_match
+Hibernate: select u1_0.id,u1_0.email,u1_0.fingerprint_rawb64,u1_0.fp_height,u1_0.fp_width,u1_0.full_name,u1_0.password,u1_0.phone,u1_0.profile_photo,u1_0.role,u1_0.voter_id from users u1_0 where u1_0.email=?
+Hibernate: select u1_0.id,u1_0.email,u1_0.fingerprint_rawb64,u1_0.fp_height,u1_0.fp_width,u1_0.full_name,u1_0.password,u1_0.phone,u1_0.profile_photo,u1_0.role,u1_0.voter_id from users u1_0 where u1_0.email=?
+2026-04-26T13:03:32.653+05:30  INFO 83524 --- [nio-8080-exec-4] c.v.backend.service.MlClientService      : Sending fingerprint to ML service for verification: voterId=2
+2026-04-26T13:03:32.747+05:30  INFO 83524 --- [nio-8080-exec-4] c.votechain.backend.service.VoteService  : [VoteService] ML verified: liveness=0.0, match=0.5198, sdk=null
+Hibernate: select v1_0.id from votes v1_0 left join users u1_0 on u1_0.id=v1_0.user_id where u1_0.voter_id=? and v1_0.election_id=? fetch first ? rows only
+2026-04-26T13:03:32.751+05:30  INFO 83524 --- [nio-8080-exec-4] c.v.backend.service.FabricService        : Submitting vote to blockchain — voter=2, candidate=3
+2026-04-26T13:03:34.809+05:30  INFO 83524 --- [nio-8080-exec-4] c.v.backend.service.FabricService        : Vote committed on blockchain — txId=d1e5a58b8058a83df75c62fc7ee9a788f64fd85f56525ca582a5d818d06eaba1
+Hibernate: select u1_0.id,u1_0.email,u1_0.fingerprint_rawb64,u1_0.fp_height,u1_0.fp_width,u1_0.full_name,u1_0.password,u1_0.phone,u1_0.profile_photo,u1_0.role,u1_0.voter_id from users u1_0 where u1_0.voter_id=?
+Hibernate: insert into votes (candidate_id,election_id,election_img,election_title,region,status,tx_hash,user_id,voted_at) values (?,?,?,?,?,?,?,?,?)
+2026-04-26T13:03:34.821+05:30  INFO 83524 --- [nio-8080-exec-4] c.votechain.backend.service.VoteService  : Vote saved — voter=2, candidate=3, txId=d1e5a58b8058a83df75c62fc7ee9a788f64fd85f56525ca582a5d818d06eaba1
+2026-04-26T13:30:41.155+05:30  INFO 83524 --- [ionShutdownHook] o.s.b.w.e.tomcat.GracefulShutdown        : Commencing graceful shutdown. Waiting for active requests to complete
+2026-04-26T13:30:41.157+05:30  INFO 83524 --- [tomcat-shutdown] o.s.b.w.e.tomcat.GracefulShutdown        : Graceful shutdown complete
+2026-04-26T13:30:41.176+05:30  INFO 83524 --- [ionShutdownHook] c.v.backend.service.FabricService        : Fabric Gateway connection closed
+2026-04-26T13:30:41.178+05:30  INFO 83524 --- [ionShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-04-26T13:30:41.181+05:30  INFO 83524 --- [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2026-04-26T13:30:41.190+05:30  INFO 83524 --- [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
