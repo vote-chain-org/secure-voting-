@@ -1,22 +1,44 @@
-# Frontend
-node_modules/
-build/
-dist/
-.env
+# --- Backups and Clones ---
+backup/
+git_cloned/
+working_version_backup/
+*.zip
+*.tar.gz
+*.exe
+*.jdk
 
-frontend/node_modules/
-frontend/build/
+# --- Hyperledger Fabric (Generated Network/Crypto) ---
+final_project/network/channel-artifacts/
+final_project/network/crypto-config/
+final_project/network/organizations/
+final_project/network/vars/
+final_project/network/log.txt
+final_project/docker/peer*/
 
-# Backend (Spring Boot)
-backend/target/
-backend/.mvn/
-backend/*.log
+# --- Backend (Maven Build Artifacts) ---
+final_project/backend/target/
+final_project/backend/.mvn/
+final_project/backend/*.log
+final_project/backend/bin/
 
-# IDE
-.vscode/
-.idea/
-*.iml
+# --- ML Service (Python venv, Cache, and Biometric Data) ---
+final_project/backend-ml/venv/
+final_project/backend-ml/__pycache__/
+final_project/backend-ml/data/fingerprints/
+final_project/backend-ml/data/real/
+final_project/backend-ml/data/spoof/
+final_project/backend-ml/*.log
+.pytest_cache/
 
-# OS
+# --- Frontend (Node Modules and Build) ---
+final_project/frontend/node_modules/
+final_project/frontend/build/
+final_project/frontend/dist/
+.eslintcache
+
+# --- Runtime / OS Temporary Files ---
+final_project/.pid_*
+final_project/logs/
+final_project/tree_of_current_parent.txt
 .DS_Store
 Thumbs.db

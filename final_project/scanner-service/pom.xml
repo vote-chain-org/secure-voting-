@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.votechain</groupId>
+    <artifactId>scanner-service</artifactId>
+    <version>1.0.0</version>
+    <packaging>jar</packaging>
+    <name>VoteChain Scanner Service</name>
+    <description>
+        Local HTTP service running on Windows voting booth laptops.
+        Wraps SecuGen FDxSDKPro Java SDK to capture fingerprints from
+        the HU20 scanner and return BMP image as base64 to the browser.
+        Run with: java -jar scanner-service.jar
+        Listens on http://localhost:9000
+    </description>
+
+    <properties>
+        <maven.compiler.source>11</maven.compiler.source>
+        <maven.compiler.target>11</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <dependencies>
+        <!--
+            FDxSDKPro.jar is NOT on Maven Central.
+            Install it to local Maven repo once on the build machine (Ubuntu):
+
+            mvn install:install-file \
+              -Dfile=lib/FDxSDKPro.jar \
+              -DgroupId=com.secugen \
+              -DartifactId=fdxsdkpro \
+              -Dversion=1.12 \
+              -Dpackaging=jar
+        -->
+        <dependency>
+            <groupId>com.secugen</groupId>
+            <artifactId>fdxsdkpro</artifactId>
+            <version>1.12</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.11.0</version>
+                <configuration>
+                    <source>11</source>
+                    <target>11</target>
+                </configuration>
+            </plugin>
+
+            <!-- Fat JAR — includes FDxSDKPro.jar classes inside the output JAR -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.5.1</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals><goal>shade</goal></goals>
+                        <configuration>
+                            <transformers>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>com.votechain.scanner.ScannerService</mainClass>
+                                </transformer>
+                            </transformers>
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

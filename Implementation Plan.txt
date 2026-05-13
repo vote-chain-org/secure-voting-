@@ -1,0 +1,586 @@
+# Secure Voting System — Full Integration Implementation Plan
+
+## Background
+
+The project consists of three major subsystems that need to be integrated into a single functional distributed voting system:
+
+1. **Spring Boot Backend** (`git_cloned/backend/`) — Existing auth + user + vote management with JWT, PostgreSQL
+2. **Hyperledger Fabric Blockchain** (`sample_hyperledger_stuff/`) — Java-based chaincode + client app for 3-booth voting network
+3. **ML Fingerprint Verification** (`git_cloned/backend-ml/`) — Python FastAPI service with liveness detection and minutiae matching
+4. **SecuGen Fingerprint SDK** (`sample_fingerprint_stuff/`) — USB scanner reference for capturing PNG fingerprints
+5. **React Frontend** (`git_cloned/frontend/`) — Existing UI with election pages, auth, profile
+
+### Current State Summary
+
+| Component | State | Key Issues |
+|-----------|-------|------------|
+| Backend | Partially functional | No fingerprint, blockchain, or ML integration. No admin endpoints. |
+| Frontend | Functional UI | Fingerprint modal exists but calls ML directly from browser. No admin dashboard. |
+| Blockchain | Reference only | Standalone Javalin/Gradle app (App.java), not integrated. Must be converted to Maven. |
+| ML Service | Functional standalone | FastAPI service with liveness + minutiae matching. Works independently. |
+| Fingerprint SDK | Reference only | SecuGen SDK code samples for Java. Not integrated. |
+
+---
+
+## User Review Required
+
+> [!IMPORTANT]
+> **Corrected Architecture**: The Spring Boot server does **NOT** interact with Hyperledger Fabric directly. Each booth is an independent Java application that holds its own Fabric identity and submits transactions. The server acts only as a coordinator/router, forwarding vote requests to the appropriate booth.
+
+> [!IMPORTANT]
+> **ML Service is Centralized on the Server Machine**: The ML FastAPI service runs **only on the server machine** (alongside Fabric network and Spring Boot). It is NOT deployed per booth. All booth applications call it over the network via `http://<SERVER_IP>:8000`. This ensures a single point of ML model management and avoids duplicating GPU/model resources.
+
+> [!IMPORTANT]
+> **Fingerprint Capture on Booth Hardware**: SecuGen SDK requires Windows-native JNI. Each booth app runs natively on a Windows laptop (as a JAR), NOT inside Docker. The booth app captures the fingerprint directly via SecuGen SDK on the host OS, converts it to PNG, passes it to the ML service, and then submits the vote to the blockchain.
+
+> [!WARNING]
+> **Hyperledger Fabric Network**: The blockchain network (orderer, peers, CouchDB) runs in Docker containers **on the server machine**. The booth Java apps connect to the network from their Windows laptops over the network using `<SERVER_IP>:<port>` — **NOT `localhost`**, since the booths are on separate machines. Docker is for infrastructure only — booth apps and fingerprint capture run natively on Windows.
+
+> [!WARNING]
+> **No Gradle**: All Java projects (booth apps, chaincode) must be Maven-based. No Gradle build system is used anywhere.
+
+---
+
+## Proposed Changes
+
+### Component 1: Booth Application — Independent Java/Maven Project
+
+> [!CAUTION]
+> This is the **core architectural element**. Each booth is a standalone Maven-based Java application that runs natively on a Windows laptop. It handles fingerprint capture, ML verification, and blockchain writes. The Spring Boot server does NOT write to the blockchain.
+
+Create a new Maven project at `git_cloned/booth-app/` that builds into a single executable JAR. Three instances run with different config profiles (booth1, booth2, booth3).
+
+---
+
+#### [NEW] [booth-app/pom.xml](file:///home/shreyas/Downloads/GIT_CLONES/devansh/secure-voting-/git_cloned/booth-app/pom.xml)
+Maven project with dependencies:
+- `io.github.hyperledger:fabric-gateway:1.4.0` — Fabric Gateway SDK (new Java client API)
+- `io.grpc:grpc-netty-shaded:1.63.0` — gRPC transport for peer communication
+- `io.netty:netty-tcnative-boringssl-static:2.0.65.Final` — TLS native support
+- `org.springframework.boot:spring-boot-starter-web` — REST API framework for booth endpoints
+- `org.springframework.boot:spring-boot-starter-webflux` — WebClient for ML service HTTP calls
+- SecuGen SDK JNI JAR (local dependency, installed via `mvn install:install-file`)
+- Maven Shade Plugin for fat JAR packaging
+
+Build command: `mvn clean install`
+Run command: `java -jar booth-app.jar --spring.profiles.active=booth1`
+
+#### [NEW] [booth-app/src/main/java/com/votechain/booth/BoothApplication.java](file:///home/shreyas/Downloads/GIT_CLONES/devansh/secure-voting-/git_cloned/booth-app/src/main/java/com/votechain/booth/BoothApplication.java)
+Spring Boot main class for the booth app. Runs on a configurable port (e.g., 9001, 9002, 9003).
+
+#### [NEW] [booth-app/src/main/java/com/votechain/booth/blockchain/FabricGatewayService.java](file:///home/shreyas/Downloads/GIT_CLONES/devansh/secure-voting-/git_cloned/booth-app/src/main/java/com/votechain/booth/blockchain/FabricGatewayService.java)
+`@Service` wrapping the Fabric Gateway SDK:
+- `@PostConstruct` initializes Identity, Signer, gRPC channel, Gateway, Network, Contract
+- Reads config from profile-specific application properties (peer endpoint, MSP ID, cert/key paths, TLS cert path, channel name, chaincode name)
+- Methods:
+  - `castVerifiedVote(String voterId, String candidateId)` → submits tx, returns tx hash
+  - `getResults()` → evaluates query, returns JSON string of vote tallies
+  - `hasVoted(String voterId)` → evaluates query, returns boolean
+  - `registerVoter(String voterId)` → submits tx
+  - `registerCandidate(String candidateId, String name)` → submits tx
+- `@PreDestroy` closes gateway and gRPC channel
+- Each booth instance uses its own MSP identity and peer connection
+
+#### [NEW] [booth-app/src/main/java/com/votechain/booth/blockchain/FabricConfig.java](file:///home/shreyas/Downloads/GIT_CLONES/devansh/secure-voting-/git_cloned/booth-app/src/main/java/com/votechain/booth/blockchain/FabricConfig.java)
+`@ConfigurationProperties(prefix = "fabric")` class:
+- `fabric.peer-endpoint` — e.g., `<SERVER_IP>:7051` for Booth1 (where `<SERVER_IP>` is the IP of the machine running the Fabric Docker network)
+- `fabric.peer-host-alias` — e.g., `peer0.booth1.example.com`
+- `fabric.msp-id` — e.g., `Booth1MSP`
+- `fabric.cert-path`, `fabric.key-dir-path`, `fabric.tls-cert-path`
+- `fabric.channel-name` = `electionchannel`
+- `fabric.chaincode-name` = `voting`
+
+#### [NEW] [booth-app/src/main/java/com/votechain/booth/fingerprint/FingerprintService.java](file:///home/shreyas/Downloads/GIT_CLONES/devansh/secure-voting-/git_cloned/booth-app/src/main/java/com/votechain/booth/fingerprint/FingerprintService.java)
+`@Service` wrapping SecuGen SDK:
+- `@PostConstruct`: initializes `JSGFPLib`, opens device, caches image dimensions
+- `captureAsBase64Png()`: captures raw grayscale → BMP → PNG → Base64 string
+- `@PreDestroy`: closes device
+- Uses SecuGen JNI native libraries installed on the Windows host
+- No hashing, no security layer — returns raw PNG as Base64
+
+#### [NEW] [booth-app/src/main/java/com/votechain/booth/service/MlVerificationService.java](file:///home/shreyas/Downloads/GIT_CLONES/devansh/secure-voting-/git_cloned/booth-app/src/main/java/com/votechain/booth/service/MlVerificationService.java)
+`@Service` that calls the **centralized** ML FastAPI service running on the server machine:
+- Uses Spring `WebClient`
+- `verifyFingerprint(String voterId, byte[] fingerprintPng)` → sends multipart POST to `http://<SERVER_IP>:8000/verify`
+- Returns `MlVerificationResult` (verified, score, reason)
+- Config: `ml.service.url=http://<SERVER_IP>:8000` in booth application properties (replace `<SERVER_IP>` with actual server IP)
+
+#### [NEW] [booth-app/src/main/java/com/votechain/booth/service/VoteService.java](file:///home/shreyas/Downloads/GIT_CLONES/devansh/secure-voting-/git_cloned/booth-app/src/main/java/com/votechain/booth/service/VoteService.java)
+Orchestrates the full vote flow **on the booth**:
+1. Capture fingerprint via `FingerprintService.captureAsBase64Png()`
+2. Call `MlVerificationService.verifyFingerprint()` → if not verified, reject
+3. Call `FabricGatewayService.castVerifiedVote(voterId, candidateId)` → get tx hash
+4. Return result (tx hash + verification status) to caller (Spring Boot server)
+
+#### [NEW] [booth-app/src/main/java/com/votechain/booth/controller/BoothController.java](file:///home/shreyas/Downloads/GIT_CLONES/devansh/secure-voting-/git_cloned/booth-app/src/main/java/com/votechain/booth/controller/BoothController.java)
+REST API exposed by each booth:
+- `POST /castVote` — accepts `{voterId, candidateId}`, runs full flow: fingerprint capture → ML verify → blockchain write. Returns `{status, txHash, voterID}`
+- `GET /getResults` — calls `FabricGatewayService.getResults()`, returns JSON vote tallies
+- `GET /hasVoted/{voterId}` — checks if voter already voted on-chain
+- `GET /health` — returns booth status + connectivity
+
+#### [NEW] [booth-app/src/main/java/com/votechain/booth/dto/](file:///home/shreyas/Downloads/GIT_CLONES/devansh/secure-voting-/git_cloned/booth-app/src/main/java/com/votechain/booth/dto/)
+- `VoteRequest.java` — DTO: `voterId`, `candidateId`
+- `VoteResult.java` — DTO: `status`, `txHash`, `voterId`, `verified`, `reason`
+- `MlVerificationResult.java` — DTO: `verified`, `score`, `reason`
+
+#### [NEW] Booth-specific application properties:
+- [booth-app/src/main/resources/application.properties](file:///home/shreyas/Downloads/GIT_CLONES/devansh/secure-voting-/git_cloned/booth-app/src/main/resources/application.properties) — common defaults (channel name, chaincode name)
+- [booth-app/src/main/resources/application-booth1.properties](file:///home/shreyas/Downloads/GIT_CLONES/devansh/secure-voting-/git_cloned/booth-app/src/main/resources/application-booth1.properties):
+  ```
+  server.port=9001
+  fabric.peer-endpoint=<SERVER_IP>:7051
+  fabric.peer-host-alias=peer0.booth1.example.com
+  fabric.msp-id=Booth1MSP
+  fabric.cert-path=crypto-config/peerOrganizations/booth1.example.com/users/User1@booth1.example.com/msp/signcerts/User1@booth1.example.com-cert.pem
+  fabric.key-dir-path=crypto-config/peerOrganizations/booth1.example.com/users/User1@booth1.example.com/msp/keystore
+  fabric.tls-cert-path=crypto-config/peerOrganizations/booth1.example.com/peers/peer0.booth1.example.com/tls/ca.crt
+  ml.service.url=http://<SERVER_IP>:8000
+  ```
+- [booth-app/src/main/resources/application-booth2.properties](file:///home/shreyas/Downloads/GIT_CLONES/devansh/secure-voting-/git_cloned/booth-app/src/main/resources/application-booth2.properties):
+  ```
+  server.port=9002
+  fabric.peer-endpoint=<SERVER_IP>:8051
+  fabric.peer-host-alias=peer0.booth2.example.com
+  fabric.msp-id=Booth2MSP
+  fabric.cert-path=crypto-config/peerOrganizations/booth2.example.com/users/User1@booth2.example.com/msp/signcerts/User1@booth2.example.com-cert.pem
+  fabric.key-dir-path=crypto-config/peerOrganizations/booth2.example.com/users/User1@booth2.example.com/msp/keystore
+  fabric.tls-cert-path=crypto-config/peerOrganizations/booth2.example.com/peers/peer0.booth2.example.com/tls/ca.crt
+  ml.service.url=http://<SERVER_IP>:8000
+  ```
+- [booth-app/src/main/resources/application-booth3.properties](file:///home/shreyas/Downloads/GIT_CLONES/devansh/secure-voting-/git_cloned/booth-app/src/main/resources/application-booth3.properties):
+  ```
+  server.port=9003
+  fabric.peer-endpoint=<SERVER_IP>:9051
+  fabric.peer-host-alias=peer0.booth3.example.com
+  fabric.msp-id=Booth3MSP
+  fabric.cert-path=crypto-config/peerOrganizations/booth3.example.com/users/User1@booth3.example.com/msp/signcerts/User1@booth3.example.com-cert.pem
+  fabric.key-dir-path=crypto-config/peerOrganizations/booth3.example.com/users/User1@booth3.example.com/msp/keystore
+  fabric.tls-cert-path=crypto-config/peerOrganizations/booth3.example.com/peers/peer0.booth3.example.com/tls/ca.crt
+  ml.service.url=http://<SERVER_IP>:8000
+  ```
+
+> [!CAUTION]
+> **Replace `<SERVER_IP>`** in all booth properties with the actual IP address of the machine running the Hyperledger Fabric network and ML service. **Do NOT use `localhost`** — the booths are on separate Windows laptops and `localhost` would refer to the booth machine itself, not the server.
+
+---
+
+### Component 2: Spring Boot Backend — Coordinator/Router Only
+
+> [!IMPORTANT]
+> The Spring Boot server does **NOT** contain any Fabric SDK dependencies. It does NOT write to the blockchain. It acts as a coordinator that routes vote requests to the appropriate booth app via HTTP.
+
+---
+
+#### [MODIFY] [pom.xml](file:///home/shreyas/Downloads/GIT_CLONES/devansh/secure-voting-/git_cloned/backend/pom.xml)
+Add only:
+- `org.springframework.boot:spring-boot-starter-webflux` — WebClient for calling booth APIs
+- ~~`io.github.hyperledger:fabric-gateway`~~ — **REMOVED, not needed on server**
+- ~~`io.grpc:grpc-netty-shaded`~~ — **REMOVED**
+- ~~`io.netty:netty-tcnative-boringssl-static`~~ — **REMOVED**
+
+#### [DELETE] ~~FabricGatewayService.java~~ — **NOT created in server**
+#### [DELETE] ~~FabricConfig.java~~ — **NOT created in server**
+
+#### [NEW] [BoothRoutingService.java](file:///home/shreyas/Downloads/GIT_CLONES/devansh/secure-voting-/git_cloned/backend/src/main/java/com/votechain/backend/service/BoothRoutingService.java)
+`@Service` that routes requests to the correct booth:
+- Maintains a map of booth IDs → booth URLs (configurable via `booth.urls.booth1`, `booth.urls.booth2`, `booth.urls.booth3`)
+- `castVote(String boothId, String voterId, String candidateId)` → POSTs to `http://{boothUrl}/castVote`, returns `VoteResult`
+- `getResults(String boothId)` → GETs from `http://{boothUrl}/getResults`, returns JSON
+- `getResultsFromAnyBooth()` → calls any available booth's `/getResults` (results are same across all peers)
+- Uses Spring `WebClient` for HTTP calls
+
+#### [NEW] [VoteService.java](file:///home/shreyas/Downloads/GIT_CLONES/devansh/secure-voting-/git_cloned/backend/src/main/java/com/votechain/backend/service/VoteService.java)
+Orchestrates the server-side vote flow:
+1. Receive vote request from frontend (voterId, candidateId, boothId, election metadata)
+2. Call `BoothRoutingService.castVote(boothId, voterId, candidateId)` → forwards to booth
+3. Booth handles: fingerprint capture → ML verify → blockchain write → returns result
+4. Store vote record in PostgreSQL (tx hash, election metadata, vote timestamp)
+5. Return result to frontend
+
+#### [MODIFY] [VoteController.java](file:///home/shreyas/Downloads/GIT_CLONES/devansh/secure-voting-/git_cloned/backend/src/main/java/com/votechain/backend/controller/VoteController.java)
+Add endpoints:
+- `POST /api/votes/cast` — accepts JSON `{voterId, candidateId, boothId, electionId, electionTitle, region, status, electionImg}`, calls `VoteService`
+- Existing `/api/votes/my` remains unchanged
+
+#### [NEW] [VoteCastRequest.java](file:///home/shreyas/Downloads/GIT_CLONES/devansh/secure-voting-/git_cloned/backend/src/main/java/com/votechain/backend/dto/VoteCastRequest.java)
+DTO: `voterId`, `candidateId`, `boothId`, `electionId`, `electionTitle`, `region`, `status`, `electionImg`.
+
+#### [MODIFY] [Vote.java](file:///home/shreyas/Downloads/GIT_CLONES/devansh/secure-voting-/git_cloned/backend/src/main/java/com/votechain/backend/model/Vote.java)
+Add `candidateId` field (String). The `txHash` field already exists. No `fingerprintBase64` on the server — fingerprint is captured and used only on the booth machine.
+
+#### [MODIFY] [application.properties](file:///home/shreyas/Downloads/GIT_CLONES/devansh/secure-voting-/git_cloned/backend/src/main/resources/application.properties)
+Add:
+```properties
+# Booth URLs — each booth app runs on a Windows laptop
+booth.urls.booth1=http://booth1-ip:9001
+booth.urls.booth2=http://booth2-ip:9002
+booth.urls.booth3=http://booth3-ip:9003
+```
+- ~~`fabric.*` properties~~ — **REMOVED, not used on server**
+- ~~`ml.service.url`~~ — **REMOVED, ML is called by booths**
+
+---
+
+### Component 3: Admin Functionality
+
+#### [NEW] [AdminController.java](file:///home/shreyas/Downloads/GIT_CLONES/devansh/secure-voting-/git_cloned/backend/src/main/java/com/votechain/backend/controller/AdminController.java)
+- `GET /api/admin/results` — calls `BoothRoutingService.getResultsFromAnyBooth()` to get vote counts per candidate from blockchain (via booth)
+- `GET /api/admin/votes/count` — alternative DB-based vote counting fallback
+- Protected by role check (`ADMIN` role on User entity)
+
+#### [MODIFY] [SecurityConfig.java](file:///home/shreyas/Downloads/GIT_CLONES/devansh/secure-voting-/git_cloned/backend/src/main/java/com/votechain/backend/security/SecurityConfig.java)
+- Add `/api/admin/**` path requiring `ADMIN` role
+- Add `/api/votes/cast` as authenticated path
+
+---
+
+### Component 4: Frontend Changes
+
+#### [NEW] [AdminDashboard.jsx](file:///home/shreyas/Downloads/GIT_CLONES/devansh/secure-voting-/git_cloned/frontend/src/pages/AdminDashboard.jsx)
+Admin dashboard page:
+- Bar chart / card view showing vote counts per candidate
+- Fetches from `GET /api/admin/results`
+- Only visible to users with `role: ADMIN`
+
+#### [NEW] [AdminDashboard.css](file:///home/shreyas/Downloads/GIT_CLONES/devansh/secure-voting-/git_cloned/frontend/src/styles/AdminDashboard.css)
+Styling for admin dashboard.
+
+#### [MODIFY] [ElectionDetail.jsx](file:///home/shreyas/Downloads/GIT_CLONES/devansh/secure-voting-/git_cloned/frontend/src/pages/ElectionDetail.jsx)
+Update `FingerprintModal` to:
+- Send vote request to `POST /api/votes/cast` (Spring Boot server) with `{voterId, candidateId, boothId}` as JSON
+- Server routes to booth → booth captures fingerprint + verifies + writes blockchain
+- Remove file upload input — fingerprint capture happens on booth hardware, not browser
+- Show scanning status received from booth via server
+
+#### [MODIFY] [App.js](file:///home/shreyas/Downloads/GIT_CLONES/devansh/secure-voting-/git_cloned/frontend/src/App.js)
+Add route: `/admin` → `AdminDashboard`
+
+#### [MODIFY] [Homepage.jsx](file:///home/shreyas/Downloads/GIT_CLONES/devansh/secure-voting-/git_cloned/frontend/src/pages/Homepage.jsx)
+Add "Admin Dashboard" link in nav dropdown for admin users.
+
+---
+
+### Component 5: Chaincode — Maven-based Project
+
+> [!IMPORTANT]
+> Chaincode converted from Gradle to Maven. Uses Maven Shade Plugin instead of Shadow plugin for fat JAR.
+
+#### [NEW] [chaincode/pom.xml](file:///home/shreyas/Downloads/GIT_CLONES/devansh/secure-voting-/git_cloned/chaincode/pom.xml)
+Maven project:
+- `groupId`: `com.voting`
+- `artifactId`: `voting-chaincode`
+- Java source/target: **11** (fabric-javaenv:2.5 Docker image ships Java 11)
+- Dependencies:
+  - `org.hyperledger.fabric-chaincode-java:fabric-chaincode-shim` (managed by BOM `fabric-chaincode-bom:2.5.0`)
+  - `com.owlike:genson:1.6`
+- Maven Shade Plugin for fat JAR with `Main-Class: com.voting.chaincode.VotingChaincode`
+- `ServicesResourceTransformer` in Shade plugin (equivalent to `mergeServiceFiles()` — required for ContractRouter discovery)
+- Build: `mvn clean package`
+
+#### [NEW] [chaincode/src/main/java/com/voting/chaincode/](file:///home/shreyas/Downloads/GIT_CLONES/devansh/secure-voting-/git_cloned/chaincode/src/main/java/com/voting/chaincode/)
+Copied and adapted from sample_hyperledger_stuff:
+- `VotingContract.java` — chaincode logic (registerVoter, registerCandidate, castVerifiedVote, getResults, hasVoted)
+- `VotingChaincode.java` — entry point
+- `Voter.java`, `Candidate.java`, `VoteRecord.java` — data types
+- On-chain data: **ONLY** `VOTER_ID` and `CANDIDATE_ID`
+
+---
+
+### Component 6: Docker Setup
+
+> [!WARNING]
+> Docker is used for Hyperledger Fabric network infrastructure, the Spring Boot server, and the ML service ONLY — **all running on the server machine**. Booth apps run natively on Windows laptops as Java JARs — they are **NOT** containerized. Fingerprint capture (SecuGen SDK) requires direct USB access on the Windows host.
+
+#### [NEW] [docker/server/Dockerfile](file:///home/shreyas/Downloads/GIT_CLONES/devansh/secure-voting-/git_cloned/docker/server/Dockerfile)
+Spring Boot server Dockerfile:
+- Multi-stage build: build with Maven, run with JRE 17
+- ENV vars for database, booth URLs
+- No Fabric SDK, no crypto material
+
+#### [NEW] [docker/server/docker-compose.yml](file:///home/shreyas/Downloads/GIT_CLONES/devansh/secure-voting-/git_cloned/docker/server/docker-compose.yml)
+Compose file for server + PostgreSQL + ML service (Python/FastAPI).
+ML service runs on the server machine at port 8000, accessible to all booths via `http://<SERVER_IP>:8000`.
+
+#### [NEW] [docker/booth1/](file:///home/shreyas/Downloads/GIT_CLONES/devansh/secure-voting-/git_cloned/docker/booth1/)
+**Configuration reference only — booth is NOT containerized.**
+Contains:
+- `Dockerfile` — **Placeholder/documentation only** explaining that booth1 must run natively on Windows due to SecuGen SDK hardware dependency
+- `application-booth1.properties` — config template for Booth 1 (peer=`<SERVER_IP>:7051`, MSP=Booth1MSP, port=9001, ml=`http://<SERVER_IP>:8000`)
+- `README.md` — instructions for running booth1 on a Windows laptop:
+  ```
+  java -Djava.library.path=<SECUGEN_DLL_PATH> -jar booth-app.jar --spring.profiles.active=booth1
+  ```
+
+#### [NEW] [docker/booth2/](file:///home/shreyas/Downloads/GIT_CLONES/devansh/secure-voting-/git_cloned/docker/booth2/)
+Same config reference structure for Booth 2 (peer=`<SERVER_IP>:8051`, MSP=Booth2MSP, port=9002). **NOT containerized.**
+
+#### [NEW] [docker/booth3/](file:///home/shreyas/Downloads/GIT_CLONES/devansh/secure-voting-/git_cloned/docker/booth3/)
+Same config reference structure for Booth 3 (peer=`<SERVER_IP>:9051`, MSP=Booth3MSP, port=9003). **NOT containerized.**
+
+#### [NEW] [docker/docker-compose-network.yml](file:///home/shreyas/Downloads/GIT_CLONES/devansh/secure-voting-/git_cloned/docker/docker-compose-network.yml)
+Full Hyperledger Fabric network compose (runs on server machine, adapted from sample):
+- `orderer.election.example.com` — Raft orderer (port 7050)
+- `peer0.booth1.example.com` — Booth 1 peer (port 7051) + CouchDB (5984)
+- `peer0.booth2.example.com` — Booth 2 peer (port 8051) + CouchDB (6984)
+- `peer0.booth3.example.com` — Booth 3 peer (port 9051) + CouchDB (7984)
+- `cli` — Fabric tools for admin operations
+- All ports exposed so booth apps on external Windows laptops can connect via `<SERVER_IP>:<port>`
+
+---
+
+### Component 7: Booth Initialization Scripts
+
+> [!IMPORTANT]
+> These scripts run on each Windows laptop to start the booth app natively (not Docker). They set up the environment and launch the JAR. Both `.bat` (Windows) and `.sh` (WSL/Git Bash) versions provided.
+
+#### [NEW] [scripts/start_booth1.sh](file:///home/shreyas/Downloads/GIT_CLONES/devansh/secure-voting-/git_cloned/scripts/start_booth1.sh) + [scripts/start_booth1.bat](file:///home/shreyas/Downloads/GIT_CLONES/devansh/secure-voting-/git_cloned/scripts/start_booth1.bat)
+- Sets `JAVA_HOME`, `SECUGEN_LIB_PATH` (path to JNI DLLs)
+- Sets environment for Booth 1
+- Runs: `java -Djava.library.path=%SECUGEN_LIB_PATH% -jar booth-app.jar --spring.profiles.active=booth1`
+- Booth connects to `<SERVER_IP>:7051` (peer0.booth1) with `Booth1MSP` identity
+- ML service at `http://<SERVER_IP>:8000`
+
+#### [NEW] [scripts/start_booth2.sh](file:///home/shreyas/Downloads/GIT_CLONES/devansh/secure-voting-/git_cloned/scripts/start_booth2.sh) + [scripts/start_booth2.bat](file:///home/shreyas/Downloads/GIT_CLONES/devansh/secure-voting-/git_cloned/scripts/start_booth2.bat)
+Same for Booth 2 (`<SERVER_IP>:8051`, Booth2MSP, app port 9002, ML at `http://<SERVER_IP>:8000`).
+
+#### [NEW] [scripts/start_booth3.sh](file:///home/shreyas/Downloads/GIT_CLONES/devansh/secure-voting-/git_cloned/scripts/start_booth3.sh) + [scripts/start_booth3.bat](file:///home/shreyas/Downloads/GIT_CLONES/devansh/secure-voting-/git_cloned/scripts/start_booth3.bat)
+Same for Booth 3 (`<SERVER_IP>:9051`, Booth3MSP, app port 9003, ML at `http://<SERVER_IP>:8000`).
+
+#### [NEW] [scripts/start_network.sh](file:///home/shreyas/Downloads/GIT_CLONES/devansh/secure-voting-/git_cloned/scripts/start_network.sh)
+Master script (runs on the server machine with Docker):
+1. Generate crypto material via `cryptogen`
+2. Generate genesis block and channel tx via `configtxgen`
+3. Start Fabric network via `docker-compose -f docker/docker-compose-network.yml up -d`
+4. Create `electionchannel` and join all peers
+5. Package and deploy chaincode (built with `mvn clean package` from `chaincode/`)
+
+#### [NEW] [scripts/stop_network.sh](file:///home/shreyas/Downloads/GIT_CLONES/devansh/secure-voting-/git_cloned/scripts/stop_network.sh)
+Tear down all Fabric network containers and volumes.
+
+---
+
+### Component 8: Hyperledger Network Configuration
+
+#### [NEW] [network/configtx.yaml](file:///home/shreyas/Downloads/GIT_CLONES/devansh/secure-voting-/git_cloned/network/configtx.yaml)
+Adapted from sample — 4-org (Booth1MSP, Booth2MSP, Booth3MSP, AdminMSP) + OrdererMSP.
+
+#### [NEW] [network/crypto-config.yaml](file:///home/shreyas/Downloads/GIT_CLONES/devansh/secure-voting-/git_cloned/network/crypto-config.yaml)
+Cryptogen configuration for generating certificates for all orgs.
+
+#### [NEW] [network/docker-compose.yaml](file:///home/shreyas/Downloads/GIT_CLONES/devansh/secure-voting-/git_cloned/network/docker-compose.yaml)
+Full Fabric network compose (orderer + 3 booth peers + CouchDB + CLI).
+
+#### [NEW] [network/core.yaml](file:///home/shreyas/Downloads/GIT_CLONES/devansh/secure-voting-/git_cloned/network/core.yaml)
+Peer configuration template.
+
+---
+
+### Component 9: Documentation
+
+#### [MODIFY] [README.md](file:///home/shreyas/Downloads/GIT_CLONES/devansh/secure-voting-/git_cloned/README.md)
+Complete rewrite with:
+- Architecture diagram reflecting booth-centric design
+- Prerequisites (Java 17, Maven, Docker, SecuGen SDK drivers)
+- Step-by-step setup for server
+- Step-by-step setup for each booth on Windows laptops
+- Docker usage instructions (Fabric network + ML service on server)
+- How to build booth-app JAR and deploy to Windows machines
+- End-to-end usage flow
+- Troubleshooting
+- **MANDATORY: `## Network Configuration` section** with:
+  ```markdown
+  ## Network Configuration
+
+  Replace `<SERVER_IP>` with the actual IP address of the machine running the
+  Hyperledger Fabric network and ML service.
+
+  **Example:** If the server machine IP is `192.168.1.10`:
+
+  ### Booth 1 (`application-booth1.properties`)
+  ```
+  fabric.peer-endpoint=192.168.1.10:7051
+  ml.service.url=http://192.168.1.10:8000
+  ```
+
+  ### Booth 2 (`application-booth2.properties`)
+  ```
+  fabric.peer-endpoint=192.168.1.10:8051
+  ml.service.url=http://192.168.1.10:8000
+  ```
+
+  ### Booth 3 (`application-booth3.properties`)
+  ```
+  fabric.peer-endpoint=192.168.1.10:9051
+  ml.service.url=http://192.168.1.10:8000
+  ```
+
+  ### Spring Boot Server (`application.properties`)
+  ```
+  booth.urls.booth1=http://<BOOTH1_IP>:9001
+  booth.urls.booth2=http://<BOOTH2_IP>:9002
+  booth.urls.booth3=http://<BOOTH3_IP>:9003
+  ```
+
+  > ⚠️ Do NOT use `localhost` for cross-machine communication.
+  > `localhost` on a booth laptop refers to the booth itself, not the server.
+  ```
+
+---
+
+## Architecture Diagram
+
+```
+                 ┌────────────────────────────────────────────────┐
+                 │            SERVER MACHINE                       │
+                 │ ┌──────────────────────────────────────┐       │
+                 │ │  Spring Boot Server (8080)            │       │
+                 │ │  [Coordinator / Router ONLY]          │       │
+                 │ │  ┌──────────┐ ┌────────────┐         │       │
+                 │ │  │ Auth/Vote│ │ Admin      │         │       │
+                 │ │  │Controller│ │ Controller │         │       │
+                 │ │  └──────────┘ └────────────┘         │       │
+                 │ │  ┌──────────────────────────┐        │       │
+                 │ │  │ BoothRoutingService      │        │       │
+                 │ │  └──────────────────────────┘        │       │
+                 │ │  ┌──────────┐                        │       │
+                 │ │  │PostgreSQL│                        │       │
+                 │ └──┴──────────┴────────────────────────┘       │
+                 │                                                 │
+                 │ ┌──────────────────────────────────────┐       │
+                 │ │  ML FastAPI Service (8000)            │       │
+                 │ │  - Liveness check                     │       │
+                 │ │  - Minutiae matching                  │       │
+                 │ │  (CENTRALIZED — all booths call this)│       │
+                 │ └──────────────────────────────────────┘       │
+                 │                                                 │
+                 │ ┌──────────────────────────────────────┐       │
+                 │ │  Hyperledger Fabric Network (Docker)  │       │
+                 │ │  ┌──────┐ ┌──────┐ ┌──────┐ ┌─────┐│       │
+                 │ │  │Peer  │ │Peer  │ │Peer  │ │Order││       │
+                 │ │  │Booth1│ │Booth2│ │Booth3│ │ er  ││       │
+                 │ │  │:7051 │ │:8051 │ │:9051 │ │:7050││       │
+                 │ │  └──────┘ └──────┘ └──────┘ └─────┘│       │
+                 │ │  + CouchDB (5984, 6984, 7984)       │       │
+                 │ └──────────────────────────────────────┘       │
+                 └──────────────────┬─────────────────────────────┘
+                                   │ Network (all via <SERVER_IP>)
+                 ┌─────────────────┼─────────────────┐
+                 ▼                 ▼                  ▼
+          ┌────────────┐   ┌────────────┐   ┌────────────┐
+          │ BOOTH 1    │   │ BOOTH 2    │   │ BOOTH 3    │
+          │ Windows PC │   │ Windows PC │   │ Windows PC │
+          │ Java JAR   │   │ Java JAR   │   │ Java JAR   │
+          │ port: 9001 │   │ port: 9002 │   │ port: 9003 │
+          │            │   │            │   │            │
+          │ SecuGen USB│   │ SecuGen USB│   │ SecuGen USB│
+          │ (JNI)      │   │ (JNI)      │   │ (JNI)      │
+          │            │   │            │   │            │
+          │ Calls:     │   │ Calls:     │   │ Calls:     │
+          │ ML→IP:8000 │   │ ML→IP:8000 │   │ ML→IP:8000 │
+          │ Peer→:7051 │   │ Peer→:8051 │   │ Peer→:9051 │
+          │ Booth1MSP  │   │ Booth2MSP  │   │ Booth3MSP  │
+          └────────────┘   └────────────┘   └────────────┘
+```
+
+## Vote Flow
+
+```
+  User at Booth Machine (Windows Laptop)
+           │
+           │ 1. Clicks "Vote" on frontend
+           ▼
+  ┌─────────────────┐
+  │ React Frontend  │  POST /api/votes/cast {voterId, candidateId, boothId}
+  └────────┬────────┘
+           │
+           ▼
+  ┌─────────────────┐
+  │ Spring Boot     │  Routes to booth via BoothRoutingService
+  │ Server (8080)   │  POST http://booth{N}-ip:900{N}/castVote
+  └────────┬────────┘
+           │ HTTP
+           ▼
+  ┌─────────────────────────────────────────────────┐
+  │ BOOTH APP (Java JAR, running on Windows laptop) │
+  │                                                  │
+  │  Step 1: SecuGen SDK → captures fingerprint PNG  │
+  │                                                  │
+  │  Step 2: POST http://<SERVER_IP>:8000/verify      │
+  │          → sends PNG + voterId                    │
+  │          ← receives {verified: true/false}        │
+  │                                                  │
+  │  if NOT verified → return error to server         │
+  │                                                  │
+  │  Step 3: Fabric Gateway SDK                      │
+  │          → castVerifiedVote(voterID, candidateID) │
+  │          ← tx hash                                │
+  │                                                  │
+  │  Step 4: Return {status, txHash} to server        │
+  └────────┬────────────────────────────────────────┘
+           │
+           ▼
+  ┌─────────────────┐
+  │ Spring Boot     │  Saves Vote to PostgreSQL (txHash, metadata)
+  │ Server          │  Returns success to frontend
+  └────────┬────────┘
+           │
+           ▼
+  ┌─────────────────┐
+  │ React Frontend  │  Shows "Vote Recorded" with tx hash
+  └─────────────────┘
+```
+
+## Identity Binding
+
+| Booth | MSP ID | Peer Endpoint | App Port | ML Service URL | Certificate Path |
+|-------|--------|---------------|----------|----------------|------------------|
+| Booth 1 | `Booth1MSP` | `<SERVER_IP>:7051` | `9001` | `http://<SERVER_IP>:8000` | `crypto-config/peerOrgs/booth1.example.com/...` |
+| Booth 2 | `Booth2MSP` | `<SERVER_IP>:8051` | `9002` | `http://<SERVER_IP>:8000` | `crypto-config/peerOrgs/booth2.example.com/...` |
+| Booth 3 | `Booth3MSP` | `<SERVER_IP>:9051` | `9003` | `http://<SERVER_IP>:8000` | `crypto-config/peerOrgs/booth3.example.com/...` |
+
+Each booth has:
+- ✅ Unique MSP identity
+- ✅ Unique certificate and key pair
+- ✅ Unique peer connection (port-based)
+- ✅ Runs natively on its own Windows laptop
+- ✅ SecuGen USB scanner physically attached
+- ✅ Connects to centralized ML service on server via `http://<SERVER_IP>:8000`
+- ✅ Connects to Fabric peer on server via `<SERVER_IP>:<port>` (NOT `localhost`)
+
+---
+
+## Removed / Corrected Items
+
+| ❌ Removed from Original Plan | ✅ Replaced With |
+|-------------------------------|-------------------|
+| `FabricGatewayService` in Spring Boot server | `FabricGatewayService` in booth-app |
+| `FabricConfig` in Spring Boot server | `FabricConfig` in booth-app |
+| Fabric SDK dependencies in server `pom.xml` | Only WebClient in server `pom.xml` |
+| Server writes to blockchain | Server routes to booth, booth writes to blockchain |
+| Fingerprint file upload from browser | SecuGen SDK capture on booth hardware |
+| Gradle-based chaincode build | Maven-based chaincode build (`pom.xml` + Shade plugin) |
+| Gradle-based app build | Maven-based booth-app build |
+| Booth Dockerfiles for running booth apps | Booth runs natively on Windows; Dockerfile is placeholder with instructions |
+| `FingerprintService` in server | `FingerprintService` in booth-app (SecuGen SDK) |
+| `MlVerificationService` in server | `MlVerificationService` in booth-app |
+
+---
+
+## Verification Plan
+
+### Automated Tests
+1. Booth app build: `cd git_cloned/booth-app && mvn clean install` — ensures Maven build succeeds
+2. Chaincode build: `cd git_cloned/chaincode && mvn clean package` — ensures fat JAR is produced
+3. Server build: `cd git_cloned/backend && ./mvnw clean compile` — ensures no compile errors
+4. Frontend build: `cd git_cloned/frontend && npm run build` — ensures React compiles
+
+### Manual Verification
+1. Start Fabric network via `scripts/start_network.sh`
+2. Start ML service on server machine (Docker container alongside Fabric network)
+3. Deploy booth-app JAR on a Windows machine with SecuGen scanner connected
+4. Start server Docker compose
+5. Test end-to-end: frontend → server → booth → fingerprint → ML → blockchain → response
+6. Verify admin dashboard shows correct vote counts
+7. Verify each booth connects with unique port/identity to its own peer
+8. Verify blockchain stores ONLY `VOTER_ID` and `CANDIDATE_ID`

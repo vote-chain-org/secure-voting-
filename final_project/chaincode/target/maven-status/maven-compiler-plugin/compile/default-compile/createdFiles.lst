@@ -1,0 +1,5 @@
+com/voting/chaincode/VotingChaincode.class
+com/voting/chaincode/VoteRecord.class
+com/voting/chaincode/Candidate.class
+com/voting/chaincode/Voter.class
+com/voting/chaincode/VotingContract.class

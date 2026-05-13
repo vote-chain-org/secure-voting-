@@ -1,0 +1,68 @@
+# ── Peer Core Configuration Template ─────────────────────────────────
+# Minimal core.yaml for the VoteChain election network.
+# Peer-specific settings are overridden via environment variables in
+# docker-compose-network.yml. This file provides defaults.
+# ─────────────────────────────────────────────────────────────────────
+
+peer:
+  id: peer0.booth1.example.com
+  networkId: dev
+  listenAddress: 0.0.0.0:7051
+  chaincodeListenAddress: 0.0.0.0:7052
+  address: 0.0.0.0:7051
+
+  # TLS
+  tls:
+    enabled: true
+    clientAuthRequired: false
+    cert:
+      file: tls/server.crt
+    key:
+      file: tls/server.key
+    rootcert:
+      file: tls/ca.crt
+
+  # Gossip
+  gossip:
+    bootstrap: 127.0.0.1:7051
+    useLeaderElection: true
+    orgLeader: false
+    externalEndpoint: peer0.booth1.example.com:7051
+
+  # MSP
+  localMspType: bccsp
+  localMspId: Booth1MSP
+
+  # BCCSP
+  BCCSP:
+    Default: SW
+    SW:
+      Hash: SHA2
+      Security: 256
+
+# Chaincode
+chaincode:
+  builder: $(DOCKER_NS)/fabric-ccenv:$(TWO_DIGIT_VERSION)
+  pull: false
+  golang:
+    runtime: $(DOCKER_NS)/fabric-baseos:$(TWO_DIGIT_VERSION)
+  java:
+    runtime: $(DOCKER_NS)/fabric-javaenv:$(TWO_DIGIT_VERSION)
+  node:
+    runtime: $(DOCKER_NS)/fabric-nodeenv:$(TWO_DIGIT_VERSION)
+
+# Ledger
+ledger:
+  blockchain:
+  state:
+    stateDatabase: CouchDB
+    couchDBConfig:
+      couchDBAddress: 127.0.0.1:5984
+      username: admin
+      password: adminpw
+
+# Operations
+operations:
+  listenAddress: 0.0.0.0:9443
+  tls:
+    enabled: false

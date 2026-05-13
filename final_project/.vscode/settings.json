@@ -1,0 +1,4 @@
+{
+    "python.defaultInterpreterPath": "${workspaceFolder}/backend-ml/venv/bin/python",
+    "java.compile.nullAnalysis.mode": "disabled"
+}

@@ -1,0 +1,56 @@
+#*************************************************************
+#*
+#* Author :      SecuGen Corporation
+#* Description : SGD2 Makefile
+#* Copyright(c): 2004 SecuGen Corporation, All rights reserved
+#* History :
+#* date        person   comments
+#* ======================================================
+#*
+#*
+#*************************************************************
+##CFLAGS = -D__LINUX -D__cplusplus -fno-stack-protector
+#CFLAGS = -D__LINUX -D__cplusplus -Wall -O
+##INCPATH = -I./ -I../include `gtk-config --cflags`
+##LIBS =  -L../lib/$(PORT) `gtk-config --libs`
+
+#GTK1.0##########################
+#CFLAGS = -D__LINUX -fno-stack-protector
+#INCPATH = -I./ -I../include `gtk-config --cflags`
+#LIBS =  -L../lib/$(PORT) `gtk-config --libs`
+#################################
+#GTK1.2##########################
+CFLAGS = -D__LINUX -D__GTK12 -fno-stack-protector
+INCPATH = -I./ -I../include `pkg-config --cflags gtk+-2.0`
+LIBS =  -L../lib/$(PORT) `pkg-config --libs gtk+-2.0`
+#################################
+
+
+OBJS=	sgd2.o \
+	image.o
+
+SRCS=	sgd2.cpp \
+	image.cpp
+
+TARGET = ../bin/$(PORT)/sgd2
+
+all : $(TARGET)
+
+$(TARGET) : $(OBJS)
+	$(CXX) -o $@ $(OBJS) $(LIBS) -lsgfplib
+
+.cc.o :
+	$(CXX) $(CFLAGS) $(INCPATH) -c $<
+
+.c.o :
+	$(CXX) $(CFLAGS) $(INCPATH) -c $<
+
+.cpp.o :
+	$(CXX) $(CFLAGS) $(INCPATH) -c $<
+
+dep :
+	gccmakedep $(INCPATH) $(SRCS)
+
+clean :
+	rm -rf *.raw $(OBJS) $(TARGET)
+
